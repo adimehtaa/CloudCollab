@@ -1,0 +1,75 @@
+############################
+# macOS
+############################
+.DS_Store
+.AppleDouble
+.LSOverride
+
+Icon
+
+
+############################
+# Node / Bun
+############################
+node_modules/
+bun.lockb
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.bun/
+dist/
+build/
+*.tsbuildinfo
+
+
+############################
+# Spring Boot / Java
+############################
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+
+# IDE
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+*.class
+
+# Logs
+*.log
+
+hs_err_pid*
+replay_pid*
+
+
+############################
+# PostgreSQL
+############################
+*.sql~
+*.dump
+*.db
+
+
+############################
+# Application Properties Rules
+############################
+# Ignore ALL .properties files
+*.properties
+
+# BUT keep sample-application.properties
+!sample-application.properties
+
+# Ensure main application.properties stays ignored
+application.properties
