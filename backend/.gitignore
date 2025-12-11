@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Configuration Files ###
+# Ignore all files in config folder
+config/*
+
+# But DO track the template file
+!config/application-external.properties.template
+!config/.gitkeep
