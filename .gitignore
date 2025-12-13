@@ -4,9 +4,7 @@
 .DS_Store
 .AppleDouble
 .LSOverride
-
 Icon
-
 
 ############################
 # Node / Bun
@@ -20,7 +18,6 @@ yarn-error.log*
 dist/
 build/
 *.tsbuildinfo
-
 
 ############################
 # Spring Boot / Java
@@ -49,10 +46,8 @@ gradle-app.setting
 
 # Logs
 *.log
-
 hs_err_pid*
 replay_pid*
-
 
 ############################
 # PostgreSQL
@@ -61,15 +56,14 @@ replay_pid*
 *.dump
 *.db
 
-
 ############################
-# Application Properties Rules
+# Configuration Files
 ############################
-# Ignore ALL .properties files
-*.properties
+# Ignore external config with actual secrets
+config/application-external.properties
 
-# BUT keep sample-application.properties
-!sample-application.properties
-
-# Ensure main application.properties stays ignored
-application.properties
+# Keep templates and main config
+!config/application-external.properties.template
+!config/.gitkeep
+!src/main/resources/application.properties
+!src/test/resources/application.properties
