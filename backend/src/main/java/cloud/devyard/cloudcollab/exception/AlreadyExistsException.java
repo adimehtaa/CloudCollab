@@ -1,7 +1,9 @@
 package cloud.devyard.cloudcollab.exception;
 
-public class AlreadyExistsException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class AlreadyExistsException extends ApplicationException {
     public AlreadyExistsException(String message) {
-        super(message);
+        super(HttpStatus.CONFLICT, "ALREADY_EXISTS", message);
     }
 }

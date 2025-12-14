@@ -17,56 +17,24 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(AlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleAlreadyExists(
-            AlreadyExistsException ex,
+    @ExceptionHandler(ApplicationException.class)
+    public ResponseEntity<ErrorResponse> handleApplicationException(
+            ApplicationException ex,
             WebRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.CONFLICT.value(),
-                ex.getMessage(),
-                "CONFLICT",
-                LocalDateTime.now(),
-                getPath(request),
-                null
-        );
-
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(
+                        ErrorResponse.of(
+                                ex.getStatus(),
+                                ex.getMessage(),
+                                ex.getErrorCode(),
+                                getPath(request),
+                                null
+                        )
+                );
     }
 
-    @ExceptionHandler(RequiredValueException.class)
-    public ResponseEntity<ErrorResponse> handleRequiredValue(
-            RequiredValueException ex,
-            WebRequest request) {
-
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                ex.getMessage(),
-                "BAD_REQUEST",
-                LocalDateTime.now(),
-                getPath(request),
-                null
-        );
-
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFound(
-            ResourceNotFoundException ex,
-            WebRequest request) {
-
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                ex.getMessage(),
-                "NOT_FOUND",
-                LocalDateTime.now(),
-                getPath(request),
-                null
-        );
-
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(
@@ -86,40 +54,6 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 getPath(request),
                 details
-        );
-
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(
-            AccessDeniedException ex,
-            WebRequest request) {
-
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.FORBIDDEN.value(),
-                "You don't have permission to access this resource",
-                "FORBIDDEN",
-                LocalDateTime.now(),
-                getPath(request),
-                null
-        );
-
-        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(
-            IllegalArgumentException ex,
-            WebRequest request) {
-
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                ex.getMessage(),
-                "ILLEGAL_ARGUMENT",
-                LocalDateTime.now(),
-                getPath(request),
-                null
         );
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);

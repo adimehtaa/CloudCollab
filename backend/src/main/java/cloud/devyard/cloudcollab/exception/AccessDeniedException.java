@@ -1,7 +1,9 @@
 package cloud.devyard.cloudcollab.exception;
 
-public class AccessDeniedException extends RuntimeException{
-    public AccessDeniedException(String message){
-        super(message);
+import org.springframework.http.HttpStatus;
+
+public class AccessDeniedException extends ApplicationException {
+    public AccessDeniedException(String message) {
+        super(HttpStatus.FORBIDDEN, "ACCESS_DENIED", message);
     }
 }
