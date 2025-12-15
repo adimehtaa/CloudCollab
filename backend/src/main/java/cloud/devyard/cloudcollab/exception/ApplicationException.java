@@ -1,7 +1,9 @@
 package cloud.devyard.cloudcollab.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@Getter
 public abstract class ApplicationException extends RuntimeException {
 
     private final HttpStatus status;
@@ -17,14 +19,14 @@ public abstract class ApplicationException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    public HttpStatus getStatus() {
-        return status;
-    }
-
-    public String getErrorCode() {
-        return errorCode;
+    protected ApplicationException(
+            HttpStatus status,
+            String errorCode,
+            String message,
+            Throwable cause
+    ) {
+        super(message, cause);
+        this.status = status;
+        this.errorCode = errorCode;
     }
 }
-
-
-

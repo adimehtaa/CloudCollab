@@ -1,14 +1,15 @@
 package cloud.devyard.cloudcollab.exception;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.http.HttpStatus;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ErrorResponse {
@@ -17,22 +18,6 @@ public class ErrorResponse {
     private String error;
     private LocalDateTime timestamp;
     private String path;
+    private String traceId;
     private List<String> details;
-
-    public static ErrorResponse of(
-            HttpStatus status,
-            String message,
-            String error,
-            String path,
-            List<String> details
-    ) {
-        return new ErrorResponse(
-                status.value(),
-                message,
-                error,
-                LocalDateTime.now(),
-                path,
-                details
-        );
-    }
 }
