@@ -31,17 +31,17 @@ public class GlobalExceptionHandler {
                 traceId, ex.getErrorCode(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .statusCode(ex.getStatus().value())
+                .statusCode(ex.getHttpStatus().value())
                 .message(ex.getMessage())
                 .error(ex.getErrorCode())
                 .timestamp(LocalDateTime.now())
                 .path(getPath(request))
                 .traceId(traceId)
-                .details(null)
+                .details(ex.getDetails())
                 .build();
 
         return ResponseEntity
-                .status(ex.getStatus())
+                .status(ex.getHttpStatus())
                 .body(errorResponse);
     }
 

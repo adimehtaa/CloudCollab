@@ -4,6 +4,6 @@ import org.springframework.http.HttpStatus;
 
 public class AlreadyExistsException extends ApplicationException {
     public AlreadyExistsException(String message) {
-        super(HttpStatus.CONFLICT, "ALREADY_EXISTS", message);
+        super(message, HttpStatus.CONFLICT, "ALREADY_EXISTS");
     }
 }
