@@ -104,10 +104,9 @@ public class GlobalExceptionHandler {
     }
 
     private String getTraceId() {
-        String mdcTraceId = MDC.get(TRACE_ID_MDC_KEY);
-        if (mdcTraceId != null) {
-            return mdcTraceId;
-        }
-        return UUID.randomUUID().toString();
+        // Since TraceIdFilter always sets MDC, this should never be null
+        // But we keep a fallback just in case this is called outside filter scope
+        String traceId = MDC.get(TRACE_ID_MDC_KEY);
+        return traceId != null ? traceId : "NO-TRACE-ID";
     }
 }
