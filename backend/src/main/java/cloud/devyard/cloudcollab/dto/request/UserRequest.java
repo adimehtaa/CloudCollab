@@ -1,4 +1,4 @@
-package cloud.devyard.cloudcollab.model.dto.request;
+package cloud.devyard.cloudcollab.dto.request;
 
 import cloud.devyard.cloudcollab.model.validation.ValidationGroups;
 import jakarta.validation.constraints.Email;
