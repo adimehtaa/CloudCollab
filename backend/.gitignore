@@ -39,3 +39,5 @@ config/*
 # But DO track the template file
 !config/application-external.properties.template
 !config/.gitkeep
+
+.env
