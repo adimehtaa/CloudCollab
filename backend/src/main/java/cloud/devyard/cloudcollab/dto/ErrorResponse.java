@@ -1,4 +1,4 @@
-package cloud.devyard.cloudcollab.exception;
+package cloud.devyard.cloudcollab.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
