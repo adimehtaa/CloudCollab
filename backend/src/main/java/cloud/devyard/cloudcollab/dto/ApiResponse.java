@@ -16,6 +16,7 @@ import java.util.Date;
 public class ApiResponse<T> {
     private Status status;
     private Integer code;
+    private String message;
     private T data;
 
     @Builder.Default

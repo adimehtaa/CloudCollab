@@ -7,6 +7,8 @@ import cloud.devyard.cloudcollab.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -42,7 +44,7 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/signin", "/api/auth/signup").permitAll()
+                .requestMatchers("/api/v1/auth/**", "/api/auth/signup").permitAll()
                 .requestMatchers("/api/test/**").permitAll()
                 .anyRequest().authenticated());
 
@@ -69,4 +71,10 @@ public class SecurityConfig {
             CustomUserDetailsService customUserDetailsService) {
         return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
     }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
 }
