@@ -8,4 +8,6 @@ import cloud.devyard.cloudcollab.dto.response.UserResponse;
 public interface AuthService {
     public JwtResponse login(LoginRequest loginRequest);
     public UserResponse signup(SignupRequest signupRequest);
+    public JwtResponse refreshToken(String requestRefreshToken);
+    public void logout(Long userId);
 }

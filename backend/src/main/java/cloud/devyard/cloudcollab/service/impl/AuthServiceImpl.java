@@ -4,8 +4,10 @@ import cloud.devyard.cloudcollab.dto.request.LoginRequest;
 import cloud.devyard.cloudcollab.dto.request.SignupRequest;
 import cloud.devyard.cloudcollab.dto.response.JwtResponse;
 import cloud.devyard.cloudcollab.dto.response.UserResponse;
+import cloud.devyard.cloudcollab.exception.InvalidCredentialsException;
 import cloud.devyard.cloudcollab.exception.BadRequestException;
 import cloud.devyard.cloudcollab.model.Organization;
+import cloud.devyard.cloudcollab.model.RefreshToken;
 import cloud.devyard.cloudcollab.model.Role;
 import cloud.devyard.cloudcollab.model.User;
 import cloud.devyard.cloudcollab.model.enums.RoleType;
@@ -19,6 +21,7 @@ import cloud.devyard.cloudcollab.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,10 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -47,12 +48,18 @@ public class AuthServiceImpl implements AuthService {
     private final OrganizationService organizationService;
 
     public JwtResponse login(LoginRequest loginRequest){
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsernameOrEmail(),
-                        loginRequest.getPassword()
-                )
-        );
+        Authentication authentication;
+
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsernameOrEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException e) {
+            throw new InvalidCredentialsException("Invalid username or password");
+        }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtTokenProvider.generateToken(authentication);
@@ -64,10 +71,22 @@ public class AuthServiceImpl implements AuthService {
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
-
-
-        return JwtResponse.builder().build();
+        return JwtResponse.builder()
+                .accessToken(jwt)
+                .refreshToken(refreshToken.getToken())
+                .tokenType("Bearer")
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .avatarUrl(user.getAvatarUrl())
+                .organizationId(user.getOrganization().getId())
+                .organizationName(user.getOrganization().getName())
+                .roles(user.getRoles().stream().map(role -> role.getName().name()).toList())
+                .build();
     }
 
     @Override
@@ -128,5 +147,14 @@ public class AuthServiceImpl implements AuthService {
                 .createdAt(savedUser.getCreatedAt())
                 .lastLoginAt(savedUser.getLastLogin())
                 .build();
+    }
+
+    @Override
+    public JwtResponse refreshToken(String requestRefreshToken) {
+        return null;
+    }
+
+    public void logout(Long userId) {
+        refreshTokenService.deleteByUserId(userId);
     }
 }

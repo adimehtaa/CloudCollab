@@ -1,8 +1,10 @@
 package cloud.devyard.cloudcollab.controller;
 
 import cloud.devyard.cloudcollab.dto.ApiResponse;
+import cloud.devyard.cloudcollab.dto.request.LoginRequest;
 import cloud.devyard.cloudcollab.dto.request.SignupRequest;
 import cloud.devyard.cloudcollab.dto.response.JwtResponse;
+import cloud.devyard.cloudcollab.dto.response.Status;
 import cloud.devyard.cloudcollab.dto.response.UserResponse;
 import cloud.devyard.cloudcollab.service.AuthService;
 import jakarta.validation.Valid;
@@ -23,13 +25,28 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest loginRequest){
+        JwtResponse jwtResponse = authService.login(loginRequest);
+        var response = ApiResponse.<JwtResponse>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("User login successfully")
+                .data(jwtResponse)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<UserResponse>> signup(@Valid @RequestBody SignupRequest signupRequest) {
         UserResponse userResponse = authService.signup(signupRequest);
         ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
-                .code(HttpStatus.ACCEPTED.value())
-                .data(userResponse)
+                .status(Status.SUCCESS)
                 .message("User register successfully")
+                .statusCode(HttpStatus.CREATED.value())
+                .data(userResponse)
                 .build();
 
         return ResponseEntity.ok(response);

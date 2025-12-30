@@ -2,6 +2,7 @@ package cloud.devyard.cloudcollab.service.impl;
 
 import cloud.devyard.cloudcollab.exception.BadRequestException;
 import cloud.devyard.cloudcollab.model.RefreshToken;
+import cloud.devyard.cloudcollab.model.User;
 import cloud.devyard.cloudcollab.repository.RefreshTokenRepository;
 import cloud.devyard.cloudcollab.repository.UserRepository;
 import cloud.devyard.cloudcollab.service.RefreshTokenService;
@@ -21,24 +22,32 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private Long refreshTokenDurationMs;
 
     private final RefreshTokenRepository refreshTokenRepository;
-
     private final UserRepository userRepository;
 
     public Optional<RefreshToken> findByToken(String token){
         return refreshTokenRepository.findByToken(token);
     }
 
+    @Transactional
     public RefreshToken createRefreshToken(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        refreshTokenRepository.deleteByUser(user);
+
+        refreshTokenRepository.flush();
+
         RefreshToken refreshToken = RefreshToken.builder()
-                .user(userRepository.findById(userId).orElseThrow(()-> new BadRequestException("User not found")))
+                .user(user)
                 .expiryDate(Instant.now().plusMillis(refreshTokenDurationMs))
                 .token(UUID.randomUUID().toString())
                 .build();
 
-        refreshToken = refreshTokenRepository.save(refreshToken);
-        return refreshToken;
+        return refreshTokenRepository.save(refreshToken);
     }
 
+
+    @Transactional
     public RefreshToken verifyExpiration(RefreshToken token){
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
