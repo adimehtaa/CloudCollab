@@ -1,19 +1,32 @@
 import apiClient from './axios';
+import type {LoginRequest, LoginResponse, JwtResponse } from '../types/auth';
+import type { ApiResponse } from '../types/ApiResponse';
 
 export const authAPI = {
-  login(credentials:unknown) {
-    return apiClient.post('/v1/auth/login', credentials);
+  login(credentials: LoginRequest) {
+    return apiClient.post<LoginResponse>(
+      '/v1/auth/login',
+      credentials
+    );
   },
-  
-  signup(userData:unknown) {
-    return apiClient.post('/v1/auth/signup', userData);
+
+  signup(userData: unknown) {
+    return apiClient.post<ApiResponse<null>>(
+      '/v1/auth/signup',
+      userData
+    );
   },
-  
-  refreshToken(refreshToken:string) {
-    return apiClient.post('/v1/auth/refresh', { refreshToken });
+
+  refreshToken(refreshToken: string) {
+    return apiClient.post<ApiResponse<JwtResponse>>(
+      '/v1/auth/refresh',
+      { refreshToken }
+    );
   },
-  
+
   logout() {
-    return apiClient.post('/v1/auth/logout');
+    return apiClient.post<ApiResponse<null>>(
+      '/v1/auth/logout'
+    );
   },
 };
