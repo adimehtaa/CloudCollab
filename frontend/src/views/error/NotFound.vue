@@ -1,7 +1,11 @@
 <template>
   <div class="not-found">
-    <h1>404</h1>
-    <p>Page not found</p>
+    <h1 style="color: var(--text-primary); font-size: 4rem; font-weight: bold; margin-bottom: 1rem;">
+      404
+    </h1>
+    <p style="color: var(--text-secondary); font-size: 1.25rem;">
+      Page not found
+    </p>
   </div>
 </template>
 

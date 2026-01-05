@@ -1,21 +1,28 @@
 <template>
-    <div class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-        <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-md space-y-6">
+    <div class="min-h-screen flex items-center justify-center px-4" style="background-color: var(--bg-secondary);">
+        <div class="w-full max-w-md p-8 space-y-6" style="background-color: var(--bg-elevated); 
+                    border-radius: var(--radius-lg); 
+                    box-shadow: var(--shadow-md);">
             <!-- Header -->
             <div>
-                <h2 class="text-center text-3xl font-extrabold text-gray-900">
+                <h2 class="text-center text-3xl font-extrabold" style="color: var(--text-primary);">
                     Sign in to CloudCollab
                 </h2>
-                <p class="mt-2 text-center text-sm text-gray-600">
+                <p class="mt-2 text-center text-sm" style="color: var(--text-secondary);">
                     Or
-                    <span class="font-medium text-primary-600 hover:text-primary-500 cursor-pointer">
+                    <span class="font-medium cursor-pointer link-hover"
+                        :style="{ color: isCreateHovered ? 'var(--accent-hover)' : 'var(--accent-primary)' }"
+                        @mouseenter="isCreateHovered = true" @mouseleave="isCreateHovered = false">
                         create a new account
                     </span>
                 </p>
             </div>
 
             <!-- Error -->
-            <div v-if="error" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div v-if="error" class="px-4 py-3 text-sm" style="border-radius: var(--radius-md); 
+                        border: 1px solid var(--status-error); 
+                        background-color: rgba(239, 68, 68, 0.1); 
+                        color: var(--status-error);">
                 {{ error }}
             </div>
 
@@ -24,7 +31,8 @@
                 <div class="space-y-4">
                     <!-- Username / Email -->
                     <div>
-                        <label for="username" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="username" class="block text-sm font-medium mb-1"
+                            style="color: var(--text-secondary);">
                             Email or Username
                         </label>
                         <input id="username" v-model="form.usernameOrEmail" type="text" required :disabled="loading"
@@ -33,7 +41,8 @@
 
                     <!-- Password -->
                     <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="password" class="block text-sm font-medium mb-1"
+                            style="color: var(--text-secondary);">
                             Password
                         </label>
                         <input id="password" v-model="form.password" type="password" required :disabled="loading"
@@ -43,20 +52,30 @@
 
                 <!-- Remember / Forgot -->
                 <div class="flex items-center justify-between">
-                    <label class="flex items-center space-x-2 text-sm text-gray-600">
-                        <input type="checkbox"
-                            class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+                    <label class="flex items-center space-x-2 text-sm" style="color: var(--text-secondary);">
+                        <input type="checkbox" class="h-4 w-4" style="border-radius: var(--radius-sm); 
+                                      border: 1px solid var(--border-medium); 
+                                      accent-color: var(--accent-primary);" />
                         <span>Remember me</span>
                     </label>
 
-                    <a href="#" class="text-sm font-medium text-primary-600 hover:text-primary-500">
+                    <a href="#" class="text-sm font-medium link-hover"
+                        :style="{ color: isForgotHovered ? 'var(--accent-hover)' : 'var(--accent-primary)' }"
+                        @mouseenter="isForgotHovered = true" @mouseleave="isForgotHovered = false">
                         Forgot password?
                     </a>
                 </div>
 
                 <!-- Submit -->
                 <button type="submit" :disabled="loading"
-                    class="w-full flex justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="w-full flex justify-center px-4 py-2 text-sm font-semibold" :style="{
+                        borderRadius: 'var(--radius-md)',
+                        backgroundColor: loading ? 'var(--accent-primary)' : (isButtonHovered ? 'var(--accent-hover)' : 'var(--accent-primary)'),
+                        color: 'var(--text-inverse)',
+                        opacity: loading ? '0.6' : '1',
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s ease'
+                    }" @mouseenter="!loading && (isButtonHovered = true)" @mouseleave="isButtonHovered = false">
                     <span v-if="!loading">Sign in</span>
                     <span v-else>Signing in...</span>
                 </button>
@@ -82,6 +101,11 @@ const form = ref<LoginRequest>({
 const loading = ref(false)
 const error = ref('')
 
+// Hover states
+const isCreateHovered = ref(false)
+const isForgotHovered = ref(false)
+const isButtonHovered = ref(false)
+
 async function handleLogin() {
     try {
         loading.value = true
@@ -99,3 +123,9 @@ async function handleLogin() {
 }
 </script>
 
+<style scoped>
+.link-hover {
+    transition: color 0.2s ease;
+}
+
+</style
