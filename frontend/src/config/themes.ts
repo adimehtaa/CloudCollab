@@ -314,10 +314,13 @@ export const applyTheme = (theme: Theme): void => {
   })
 }
 
+// In-memory storage instead of localStorage
+let currentThemePreference = 'slate-mono'
+
 export const saveThemePreference = (themeId: string): void => {
-  localStorage.setItem('app-theme', themeId)
+  currentThemePreference = themeId
 }
 
 export const getThemePreference = (): string => {
-  return localStorage.getItem('app-theme') || 'slate-mono'
+  return currentThemePreference
 }

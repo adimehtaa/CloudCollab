@@ -25,7 +25,7 @@
                     <!-- User Actions -->
                     <div class="flex items-center space-x-4">
                         <!-- Theme Selector -->
-                        <ThemeSelector />
+                        <!-- <ThemeSelector /> -->
 
                         <!-- User Info -->
                         <div v-if="user" class="flex items-center space-x-3">
@@ -142,7 +142,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import InfoItem from '../../ui/cards/InfoItem.vue'
-import ThemeSelector from '../../ui/theme/ThemeSelector.vue'
+// import ThemeSelector from '../../ui/theme/ThemeSelector.vue'
 import { authAPI } from '../../api/auth.api'
 import { useAuthStore } from '../../stores/auth.store'
 import { useThemeStore } from '../../stores/theme.store'
