@@ -9,12 +9,12 @@
                     Sign in to CloudCollab
                 </h2>
                 <p class="mt-2 text-center text-sm" style="color: var(--text-secondary);">
-                    Or
-                    <span class="font-medium cursor-pointer link-hover"
+                    create a new account
+                    <router-link to="/signup" class="font-medium link-hover"
                         :style="{ color: isCreateHovered ? 'var(--accent-hover)' : 'var(--accent-primary)' }"
                         @mouseenter="isCreateHovered = true" @mouseleave="isCreateHovered = false">
-                        create a new account
-                    </span>
+                        Sign up
+                    </router-link>
                 </p>
             </div>
 

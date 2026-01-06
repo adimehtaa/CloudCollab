@@ -1,8 +1,8 @@
 import type { ApiResponse } from "./ApiResponse";
 
-export interface LoginRequest{
-    usernameOrEmail:string
-    password: string
+export interface LoginRequest {
+  usernameOrEmail: string
+  password: string
 }
 
 export interface JwtResponse {
@@ -34,3 +34,23 @@ export interface User {
 
 
 export type LoginResponse = ApiResponse<JwtResponse>;
+
+export interface SignupFormData {
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  confirmPassword: string;
+  organizationName: string;
+  acceptTerms: boolean;
+}
+
+export interface SignupRequest {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  organizationName?: string;
+}
