@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { authAPI } from "../api/auth.api";
 import { storage } from "../utils/storage";
-import type { JwtResponse, LoginRequest, SignupRequest, User } from "../types/auth";
+import type { JwtResponse, LoginRequest, SignupRequest, User, UserResponse } from "../types/auth";
 
 export const useAuthStore = defineStore('auth', () => {
     const accessToken = ref<string | null>(storage.getToken() ?? null)
@@ -61,9 +61,27 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function signup(request :SignupRequest) {
-        
+    async function signup(request :SignupRequest){
+        try {
+            loading.value = true;
+            error.value = null;
+
+            const {data} = await authAPI.signup(request);
+            
+            
+
+
+        } catch (err : any) {
+            error.value = err.response?.data?.message || 'Signup failed';
+            throw err;
+        } finally{
+            loading.value = false;
+        }
     }
+
+    async function refreshTokenAction() {}
+
+    async function logout() {}
 
     return {
         accessToken,
@@ -77,6 +95,8 @@ export const useAuthStore = defineStore('auth', () => {
         isAdmin,
         isSuperAdmin,
         login,
-        signup
+        signup,
+        refreshTokenAction,
+        logout
     }
 })

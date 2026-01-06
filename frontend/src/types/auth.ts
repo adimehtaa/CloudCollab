@@ -54,3 +54,19 @@ export interface SignupRequest {
   lastName: string;
   organizationName?: string;
 }
+
+export interface UserResponse {
+  id: number
+  username: string
+  email: string
+  firstName: string
+  lastName: string
+  avatarUrl: string | null
+  emailVerified: boolean
+  active: boolean
+  organizationId: number | null
+  organizationName: string | null
+  roles: string[]
+  createdAt: string
+  lastLoginAt: string | null
+}

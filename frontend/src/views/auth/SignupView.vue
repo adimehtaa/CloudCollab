@@ -1,6 +1,6 @@
 <template>
     <div class="min-h-screen flex items-center justify-center px-4" style="background-color: var(--bg-secondary);">
-        <div class="w-full max-w-md p-8 space-y-6"
+        <div v-if="userNotSignup" class="w-full max-w-md p-8 space-y-6"
             style="background-color: var(--bg-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
             <!-- Header -->
             <div>
@@ -147,6 +147,10 @@
                 </button>
             </form>
         </div>
+
+        <div v-if="!userNotSignup">
+            <h1>User Register Details</h1>
+        </div>
     </div>
 </template>
 
@@ -162,6 +166,7 @@ const authStore = useAuthStore();
 const loading = ref(false);
 const error = ref('');
 const validationErrors = ref<string[]>([]);
+const userNotSignup = ref(true)
 
 const form = ref<SignupFormData>({
     username: '',
