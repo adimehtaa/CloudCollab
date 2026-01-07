@@ -148,8 +148,57 @@
             </form>
         </div>
 
-        <div v-if="!userNotSignup">
-            <h1>User Register Details</h1>
+        <!-- Success View - Only show when userResponse exists -->
+        <div v-else-if="userResponse" class="w-full max-w-md p-8 space-y-6"
+            style="background-color: var(--bg-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+            <h1 class="text-center font-extrabold text-2xl" style="color: var(--text-primary);">
+                Account Created Successfully!
+            </h1>
+
+            <div class="space-y-2">
+                <p class="text-center" style="color: var(--text-primary);">
+                    Welcome, {{ userResponse.firstName }} {{ userResponse.lastName }}!
+                </p>
+                <p class="text-center text-sm" style="color: var(--text-secondary);">
+                    A verification email has been sent to <span class="font-semibold">{{ userResponse.email }}</span>
+                </p>
+            </div>
+
+            <div class="p-4 space-y-2" style="background-color: var(--bg-secondary); border-radius: var(--radius-md);">
+                <div style="color: var(--text-primary);">
+                    <span class="font-semibold">Username:</span> {{ userResponse.username }}
+                </div>
+                <div style="color: var(--text-primary);">
+                    <span class="font-semibold">Email:</span> {{ userResponse.email }}
+                </div>
+                <div style="color: var(--text-primary);">
+                    <span class="font-semibold">Account Status:</span>
+                    <span :style="{ color: userResponse.active ? 'var(--status-success)' : 'var(--status-error)' }">
+                        {{ userResponse.active ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
+                <div style="color: var(--text-primary);">
+                    <span class="font-semibold">Email Verified:</span>
+                    <span :style="{ color: userResponse.emailVerified ? 'var(--status-success)' : 'var(--status-warning)' }">
+                        {{ userResponse.emailVerified ? 'Yes' : 'Pending' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button @click="redirectToLogin"
+                    class="w-full px-4 py-2 text-sm font-semibold"
+                    :style="{
+                        borderRadius: 'var(--radius-md)',
+                        backgroundColor: isLoginButtonHovered ? 'var(--accent-hover)' : 'var(--accent-primary)',
+                        color: 'var(--text-inverse)',
+                        transition: 'all 0.2s ease'
+                    }"
+                    @mouseenter="isLoginButtonHovered = true"
+                    @mouseleave="isLoginButtonHovered = false">
+                    Go to Login
+                </button>
+            </div>
         </div>
     </div>
 </template>
@@ -158,7 +207,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth.store';
-import type { SignupFormData } from '../../types/auth';
+import type { SignupFormData, UserResponse } from '../../types/auth';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -166,7 +215,8 @@ const authStore = useAuthStore();
 const loading = ref(false);
 const error = ref('');
 const validationErrors = ref<string[]>([]);
-const userNotSignup = ref(true)
+const userNotSignup = ref(true);
+const userResponse = ref<UserResponse | null>(null);
 
 const form = ref<SignupFormData>({
     username: '',
@@ -184,6 +234,7 @@ const isSignInHovered = ref(false);
 const isTermsHovered = ref(false);
 const isPrivacyHovered = ref(false);
 const isButtonHovered = ref(false);
+const isLoginButtonHovered = ref(false);
 
 function validateForm(): boolean {
     validationErrors.value = [];
@@ -223,8 +274,8 @@ async function handleSignup() {
             ? { ...signupData, organizationName }
             : signupData;
 
-        await authStore.signup(apiData);
-        router.push('/dashboard');
+        userResponse.value = await authStore.signup(apiData);
+        userNotSignup.value = false;
     } catch (err: any) {
         if (err.response?.data?.errors) {
             const errors = err.response.data.errors;
@@ -236,6 +287,10 @@ async function handleSignup() {
     } finally {
         loading.value = false;
     }
+}
+
+const redirectToLogin = () => {
+    router.push('/login');
 }
 </script>
 

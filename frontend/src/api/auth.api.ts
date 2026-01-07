@@ -1,5 +1,5 @@
 import apiClient from './axios';
-import type {LoginRequest, LoginResponse, JwtResponse, SignupRequest } from '../types/auth';
+import type {LoginRequest, LoginResponse, JwtResponse, SignupRequest, UserResponse } from '../types/auth';
 import type { ApiResponse } from '../types/ApiResponse';
 
 export const authAPI = {
@@ -11,7 +11,7 @@ export const authAPI = {
   },
 
   signup(userData: SignupRequest) {
-    return apiClient.post<ApiResponse<null>>(
+    return apiClient.post<ApiResponse<UserResponse>>(
       '/v1/auth/signup',
       userData
     );

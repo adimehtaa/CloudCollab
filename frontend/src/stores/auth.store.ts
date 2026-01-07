@@ -61,27 +61,39 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    async function signup(request :SignupRequest){
+    async function signup(request: SignupRequest): Promise<UserResponse> {
         try {
             loading.value = true;
             error.value = null;
 
-            const {data} = await authAPI.signup(request);
-            
-            
+            const { data } = await authAPI.signup(request);
+            const payload: UserResponse = data.data;
 
-
-        } catch (err : any) {
+            return payload;
+        } catch (err: any) {
             error.value = err.response?.data?.message || 'Signup failed';
             throw err;
-        } finally{
+        } finally {
             loading.value = false;
         }
     }
 
-    async function refreshTokenAction() {}
+    async function refreshTokenAction() { }
 
-    async function logout() {}
+    async function logout(): Promise<void> {
+        try {
+            if (accessToken.value) {
+                await authAPI.logout();
+            }
+        } catch {
+            // ignore backend errors (token may already be invalid)
+        } finally {
+            accessToken.value = null;
+            refreshToken.value = null;
+            user.value = null;
+            storage.clearAll();
+        }
+    }
 
     return {
         accessToken,

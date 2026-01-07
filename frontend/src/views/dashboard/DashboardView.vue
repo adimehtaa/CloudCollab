@@ -199,9 +199,10 @@ const stats = computed(() => [
 
 async function handleLogout() {
     try {
-        await authAPI.logout()
+        await authAPI.logout();
     } finally {
-        router.push('/login')
+        router.push("/login");
     }
 }
+
 </script>
