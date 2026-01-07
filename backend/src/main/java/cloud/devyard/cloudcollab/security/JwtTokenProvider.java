@@ -41,7 +41,7 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
         return Jwts.builder()
-                .subject("pass id here.")
+                .subject(String.valueOf(userPrincipal.getId()))
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(key())
