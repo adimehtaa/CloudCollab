@@ -33,8 +33,8 @@ public class UserInvitation {
     @JoinColumn(name = "invited_by_user_id")
     private User inviteBy;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @Column(name = "role_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
     @Column(nullable = false , unique = true)
