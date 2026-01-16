@@ -12,12 +12,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../components/Home.vue'),
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: () => import('../views/dashboard/DashboardView.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/login',
     name: 'Login',
     component: () => import('../views/auth/LoginView.vue')
@@ -26,6 +20,27 @@ const routes: RouteRecordRaw[] = [
     path: '/signup',
     name: 'Signup',
     component: () => import('../views/auth/SignupView.vue')
+  },
+  {
+    path: '/forget-password',
+    name: 'Forget Password',
+    component: () => import('../views/auth/ForgetPasswordView.vue')
+  },
+  {
+    path: '/privacy-policy',
+    name: 'Signup',
+    component: () => import('../views/auth/PrivacyPolicyView.vue')
+  },
+  {
+    path: '/terms-of-service',
+    name: 'Terms of Service',
+    component: () => import('../views/auth/TermsOfServiceView.vue')
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('../views/dashboard/DashboardView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/:pathMatch(.*)*',
