@@ -12,6 +12,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,7 +37,7 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(
                 corsConfig.corsConfigurationSource()));
 
-        http.csrf(csrf -> csrf.disable());
+        http.csrf(AbstractHttpConfigurer::disable);
 
         http.exceptionHandling(exception ->
                 exception.authenticationEntryPoint(unauthorizedHandler));
@@ -49,8 +51,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated());
 
         http.headers(headers -> headers
-                .frameOptions(frame -> frame.sameOrigin())
-                .xssProtection(xss -> xss.disable())
+                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                .xssProtection(HeadersConfigurer.XXssConfig::disable)
                 .contentSecurityPolicy(csp ->
                         csp.policyDirectives("default-src 'self'")));
 

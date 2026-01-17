@@ -58,8 +58,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Transactional
     public void deleteByUserId(Long userId) {
-        userRepository.findById(userId).ifPresent(user ->
-                refreshTokenRepository.deleteByUser(user)
+        userRepository.findById(userId).ifPresent(refreshTokenRepository::deleteByUser
         );
     }
 }
