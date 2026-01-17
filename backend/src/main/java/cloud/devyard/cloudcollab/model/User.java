@@ -59,6 +59,26 @@ public class User {
 
     private LocalDateTime lastLogin;
 
+    @Column(length = 500)
+    private String bio;
+
+    @Column(length = 50)
+    private String phoneNumber;
+
+    @Column(length = 100)
+    private String jobTitle;
+
+    @Column(length = 100)
+    private String department;
+
+    @Column(length = 100)
+    private String location;
+
+    private LocalDateTime dateOfBirth;
+
+    @OneToOne(mappedBy = "user" , cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    UserPreferences preferences;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id")
     private Organization organization;
