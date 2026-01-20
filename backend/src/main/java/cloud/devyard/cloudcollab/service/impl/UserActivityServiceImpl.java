@@ -49,12 +49,12 @@ public class UserActivityServiceImpl implements UserActivityService {
 
     @Override
     public void logActivity(User user, ActivityType activityType, String description) {
-
+        logActivity(user, activityType, description, null);
     }
 
     @Override
     public Page<UserActivity> getUserActivities(Long userId, Pageable pageable) {
-        return null;
+        return userActivityRepository.findByUserId(userId, pageable);
     }
 
     @Override
