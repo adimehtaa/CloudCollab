@@ -59,6 +59,6 @@ public class UserActivityServiceImpl implements UserActivityService {
 
     @Override
     public Page<UserActivity> getOrganizationActivities(Long organizationId, Pageable pageable) {
-        return null;
+        return userActivityRepository.findByUserOrganizationId(organizationId, pageable);
     }
 }
