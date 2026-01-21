@@ -57,12 +57,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserPreferences getPreferences(Long userId) {
-        return null;
+        return userPreferencesRepository.findByUserId(userId)
+                .orElseGet(()-> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                    UserPreferences pref= new UserPreferences();
+                    pref.setUser(user);
+                    return userPreferencesRepository.save(pref);
+                });
     }
 
     @Override
     public Page<User> searchUsers(String query, Long organizationId, Pageable pageable) {
-        return null;
+        //TODO: Implement search logic (you'll need to add this method to UserRepository)
+        return userRepository.findAll(pageable);
     }
 
 
