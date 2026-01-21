@@ -52,7 +52,36 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserPreferences updatePreferences(Long userId, UserPreferencesRequest request) {
-        return null;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found exception."));
+
+        UserPreferences preferences = userPreferencesRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    return UserPreferences.builder()
+                            .user(user)
+                            .build();
+                });
+
+        if (request.getEmailNotifications() != null)
+            preferences.setEmailNotifications(request.getEmailNotifications());
+        if (request.getPushNotifications() != null)
+            preferences.setPushNotifications(request.getPushNotifications());
+        if (request.getSmsNotifications() != null)
+            preferences.setSmsNotifications(request.getSmsNotifications());
+        if (request.getTheme() != null)
+            preferences.setTheme(request.getTheme());
+        if (request.getLanguage() != null)
+            preferences.setLanguage(request.getLanguage());
+        if (request.getTimezone() != null)
+            preferences.setTimezone(request.getTimezone());
+        if (request.getProfilePublic() != null)
+            preferences.setProfilePublic(request.getProfilePublic());
+        if (request.getShowEmail() != null)
+            preferences.setShowEmail(request.getShowEmail());
+        if (request.getShowOnlineStatus() != null)
+            preferences.setShowOnlineStatus(request.getShowOnlineStatus());
+
+        return userPreferencesRepository.save(preferences);
     }
 
     @Override
