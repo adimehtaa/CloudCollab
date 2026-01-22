@@ -5,6 +5,7 @@ import cloud.devyard.cloudcollab.dto.request.ChangePasswordRequest;
 import cloud.devyard.cloudcollab.dto.request.UpdateProfileRequest;
 import cloud.devyard.cloudcollab.dto.request.UserPreferencesRequest;
 import cloud.devyard.cloudcollab.dto.response.UserDetailResponse;
+import cloud.devyard.cloudcollab.exception.BadRequestException;
 import cloud.devyard.cloudcollab.model.User;
 import cloud.devyard.cloudcollab.model.UserPreferences;
 import cloud.devyard.cloudcollab.model.enums.ActivityType;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final UserPreferencesRepository userPreferencesRepository;
     private final UserActivityService userActivityService;
     private final FileStorageService fileStorageService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetailResponse getUserProfile(Long userId){
@@ -80,7 +83,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void changePassword(Long userId, ChangePasswordRequest request, HttpServletRequest httpRequest) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new UsernameNotFoundException("User not found."));
 
+        if (!passwordEncoder.matches(request.getCurrentPassword() , user.getPassword())){
+            throw new BadRequestException("Current password is incorrect");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())){
+            throw new BadRequestException("New passwords do not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        userActivityService.logActivity(user, ActivityType.PASSWORD_CHANGE, "Password changed", httpRequest);
     }
 
     @Override
