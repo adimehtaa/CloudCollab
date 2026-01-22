@@ -10,6 +10,7 @@ import cloud.devyard.cloudcollab.model.UserPreferences;
 import cloud.devyard.cloudcollab.model.enums.ActivityType;
 import cloud.devyard.cloudcollab.repository.UserPreferencesRepository;
 import cloud.devyard.cloudcollab.repository.UserRepository;
+import cloud.devyard.cloudcollab.service.FileStorageService;
 import cloud.devyard.cloudcollab.service.UserActivityService;
 import cloud.devyard.cloudcollab.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +30,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserPreferencesRepository userPreferencesRepository;
     private final UserActivityService userActivityService;
+    private final FileStorageService fileStorageService;
 
     @Override
     public UserDetailResponse getUserProfile(Long userId){
@@ -60,7 +62,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String uploadAvatar(Long userId, MultipartFile file, HttpServletRequest httpRequest) {
-        return "";
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new UsernameNotFoundException("User not found"));
+
+        if(user.getAvatarUrl() != null){
+            fileStorageService.deleteFile(user.getAvatarUrl());
+        }
+
+        String avatarUrl = fileStorageService.uploadAvatar(file , userId);
+        user.setAvatarUrl(avatarUrl);
+        userRepository.save(user);
+        userActivityService.logActivity(user,ActivityType.AVATAR_UPLOAD , "Avatar upload", httpRequest);
+
+        return avatarUrl;
     }
 
     @Override
