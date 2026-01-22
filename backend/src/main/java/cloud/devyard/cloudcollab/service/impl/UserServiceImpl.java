@@ -7,8 +7,10 @@ import cloud.devyard.cloudcollab.dto.request.UserPreferencesRequest;
 import cloud.devyard.cloudcollab.dto.response.UserDetailResponse;
 import cloud.devyard.cloudcollab.model.User;
 import cloud.devyard.cloudcollab.model.UserPreferences;
+import cloud.devyard.cloudcollab.model.enums.ActivityType;
 import cloud.devyard.cloudcollab.repository.UserPreferencesRepository;
 import cloud.devyard.cloudcollab.repository.UserRepository;
+import cloud.devyard.cloudcollab.service.UserActivityService;
 import cloud.devyard.cloudcollab.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserPreferencesRepository userPreferencesRepository;
+    private final UserActivityService userActivityService;
 
     @Override
     public UserDetailResponse getUserProfile(Long userId){
@@ -37,7 +40,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetailResponse updateProfile(Long userId, UpdateProfileRequest request, HttpServletRequest httpRequest) {
-        return null;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) user.setLastName(request.getLastName());
+        if (request.getBio() != null) user.setBio(request.getBio());
+        if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getJobTitle() != null) user.setJobTitle(request.getJobTitle());
+        if (request.getDepartment() != null) user.setDepartment(request.getDepartment());
+        if (request.getLocation() != null) user.setLocation(request.getLocation());
+        if (request.getDateOfBirth() != null) user.setDateOfBirth(request.getDateOfBirth().atStartOfDay());
+
+        User updatedUser = userRepository.save(user);
+
+        userActivityService.logActivity(user, ActivityType.PROFILE_UPDATE, "Profile updated", httpRequest);
+        return mapToDetailResponse(updatedUser);
     }
 
     @Override
