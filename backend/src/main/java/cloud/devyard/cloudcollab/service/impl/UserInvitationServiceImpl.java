@@ -16,11 +16,11 @@ import cloud.devyard.cloudcollab.service.OrganizationService;
 import cloud.devyard.cloudcollab.service.UserInvitationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -74,6 +74,12 @@ public class UserInvitationServiceImpl implements UserInvitationService {
 
         return mapToInvitationResponse(invitationRepository.save(invitation));
     }
+
+    public List<InvitationResponse> getOrganizationInvitations(Long organizationId){
+        return invitationRepository.findByOrganizationIdAndStatus(organizationId , InvitationStatus.PENDING)
+                .stream().map(this::mapToInvitationResponse).toList();
+    }
+
 
 
 
