@@ -48,7 +48,7 @@ public class UserInvitation {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime expiresAt;
 
     private LocalDateTime acceptedAt;
 }
