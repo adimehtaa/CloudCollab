@@ -72,15 +72,37 @@ public class UserInvitationServiceImpl implements UserInvitationService {
                 .expiresAt(LocalDateTime.now().plusHours(invitationExpiryHours))
                 .build();
 
+        // TODO: Send invitation email
+
         return mapToInvitationResponse(invitationRepository.save(invitation));
     }
 
+    @Override
     public List<InvitationResponse> getOrganizationInvitations(Long organizationId){
         return invitationRepository.findByOrganizationIdAndStatus(organizationId , InvitationStatus.PENDING)
                 .stream().map(this::mapToInvitationResponse).toList();
     }
 
+    @Override
+    public void cancelInvitation(Long invitationId, Long userId) {
+        UserInvitation invitation = invitationRepository.findById(invitationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invitation not found"));
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(()->  new ResourceNotFoundException("User not found"));
+
+        if (!invitation.getOrganization().getId().equals(user.getOrganization().getId())){
+            throw new BadRequestException("You don't have permission to cancel this invitation");
+        }
+
+        invitation.setInvitationStatus(InvitationStatus.CANCELLED);
+        invitationRepository.save(invitation);
+    }
+
+    @Override
+    public void expireOldInvitations() {
+
+    }
 
 
     private InvitationResponse mapToInvitationResponse(UserInvitation invitation) {
