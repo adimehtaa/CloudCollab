@@ -102,6 +102,14 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     @Override
     public void expireOldInvitations() {
 
+        List<UserInvitation> expiredInvitations = invitationRepository
+                .findByStatusAndExpiresAtBefore(InvitationStatus.PENDING, LocalDateTime.now());
+
+        expiredInvitations.forEach(invitation -> {
+            invitation.setInvitationStatus(InvitationStatus.EXPIRED);
+            invitationRepository.save(invitation);
+        });
+
     }
 
 
