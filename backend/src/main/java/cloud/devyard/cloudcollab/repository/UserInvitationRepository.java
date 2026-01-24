@@ -10,9 +10,7 @@ import java.util.List;
 
 @Repository
 public interface UserInvitationRepository extends JpaRepository<UserInvitation , Long> {
-    boolean existsByEmailAndOrganizationIdAndStatus(String email, Long organizationId, InvitationStatus status);
-    List<UserInvitation> findByOrganizationIdAndStatus(Long organizationId ,InvitationStatus status);
-    List<UserInvitation> findByStatusAndExpiresAtBefore(InvitationStatus status, LocalDateTime now);
-
-
+    boolean existsByEmailAndOrganizationIdAndInvitationStatus(String email, Long organizationId, InvitationStatus status);
+    List<UserInvitation> findByOrganizationIdAndInvitationStatus(Long organizationId ,InvitationStatus status);
+    List<UserInvitation> findByInvitationStatusAndExpiresAtBefore(InvitationStatus status, LocalDateTime now);
 }

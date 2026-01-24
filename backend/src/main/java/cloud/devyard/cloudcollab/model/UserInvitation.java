@@ -41,8 +41,8 @@ public class UserInvitation {
     private String token;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private InvitationStatus invitationStatus;
+    @Column(nullable = false , name = "status")
+    private InvitationStatus invitationStatus= InvitationStatus.PENDING;;
 
     @CreationTimestamp
     @Column(updatable = false)

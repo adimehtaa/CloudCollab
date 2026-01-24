@@ -47,7 +47,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
             );
         }
 
-        if (invitationRepository.existsByEmailAndOrganizationIdAndStatus(
+        if (invitationRepository.existsByEmailAndOrganizationIdAndInvitationStatus(
                 request.getEmail(), organizationId, InvitationStatus.PENDING)) {
             throw new BadRequestException(
                     "Pending invitation already exists for this email"
@@ -79,7 +79,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
 
     @Override
     public List<InvitationResponse> getOrganizationInvitations(Long organizationId){
-        return invitationRepository.findByOrganizationIdAndStatus(organizationId , InvitationStatus.PENDING)
+        return invitationRepository.findByOrganizationIdAndInvitationStatus(organizationId , InvitationStatus.PENDING)
                 .stream().map(this::mapToInvitationResponse).toList();
     }
 
@@ -103,7 +103,7 @@ public class UserInvitationServiceImpl implements UserInvitationService {
     public void expireOldInvitations() {
 
         List<UserInvitation> expiredInvitations = invitationRepository
-                .findByStatusAndExpiresAtBefore(InvitationStatus.PENDING, LocalDateTime.now());
+                .findByInvitationStatusAndExpiresAtBefore(InvitationStatus.PENDING, LocalDateTime.now());
 
         expiredInvitations.forEach(invitation -> {
             invitation.setInvitationStatus(InvitationStatus.EXPIRED);
