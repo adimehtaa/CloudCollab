@@ -4,8 +4,9 @@ import cloud.devyard.cloudcollab.dto.request.LoginRequest;
 import cloud.devyard.cloudcollab.dto.request.SignupRequest;
 import cloud.devyard.cloudcollab.dto.response.JwtResponse;
 import cloud.devyard.cloudcollab.dto.response.UserResponse;
+import cloud.devyard.cloudcollab.exception.AlreadyExistsException;
 import cloud.devyard.cloudcollab.exception.InvalidCredentialsException;
-import cloud.devyard.cloudcollab.exception.BadRequestException;
+import cloud.devyard.cloudcollab.exception.ResourceNotFoundException;
 import cloud.devyard.cloudcollab.model.Organization;
 import cloud.devyard.cloudcollab.model.RefreshToken;
 import cloud.devyard.cloudcollab.model.Role;
@@ -67,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
         User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new BadRequestException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
@@ -95,11 +96,11 @@ public class AuthServiceImpl implements AuthService {
 
         if (userRepository.existsByUsername(signupRequest.getUsername()))
         {
-            throw new BadRequestException("Username is already taken");
+            throw new AlreadyExistsException("Username is already taken");
         }
 
         if (userRepository.existsByEmail(signupRequest.getEmail())){
-            throw new BadRequestException("Email is already registered");
+            throw new AlreadyExistsException("Email is already registered");
         }
 
         Organization organization = null;
@@ -120,12 +121,12 @@ public class AuthServiceImpl implements AuthService {
 
         Set<Role> roles = new HashSet<>();
         Role userRole = roleRepository.findByName(RoleType.ROLE_USER)
-                .orElseThrow(() -> new BadRequestException("User Role not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User Role not found"));
         roles.add(userRole);
 
         if (organization != null) {
             Role adminRole = roleRepository.findByName(RoleType.ROLE_ADMIN)
-                    .orElseThrow(() -> new BadRequestException("Admin Role not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Admin Role not found"));
             roles.add(adminRole);
         }
 

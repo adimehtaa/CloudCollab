@@ -1,5 +1,6 @@
 package cloud.devyard.cloudcollab.service.impl;
 
+import cloud.devyard.cloudcollab.exception.AlreadyExistsException;
 import cloud.devyard.cloudcollab.exception.BadRequestException;
 import cloud.devyard.cloudcollab.model.Organization;
 import cloud.devyard.cloudcollab.repository.OrganizationRepository;
@@ -19,7 +20,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
         if (organizationRepository.existsBySlug(slug))
         {
-            throw new BadRequestException("Organization with this name already exists");
+            throw new AlreadyExistsException("Organization with this name already exists");
         }
 
         Organization organization = Organization.builder()

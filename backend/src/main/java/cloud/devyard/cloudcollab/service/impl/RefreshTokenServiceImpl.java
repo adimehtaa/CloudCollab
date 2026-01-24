@@ -1,6 +1,7 @@
 package cloud.devyard.cloudcollab.service.impl;
 
 import cloud.devyard.cloudcollab.exception.BadRequestException;
+import cloud.devyard.cloudcollab.exception.ResourceNotFoundException;
 import cloud.devyard.cloudcollab.model.RefreshToken;
 import cloud.devyard.cloudcollab.model.User;
 import cloud.devyard.cloudcollab.repository.RefreshTokenRepository;
@@ -31,7 +32,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Transactional
     public RefreshToken createRefreshToken(Long userId){
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BadRequestException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         refreshTokenRepository.deleteByUser(user);
 

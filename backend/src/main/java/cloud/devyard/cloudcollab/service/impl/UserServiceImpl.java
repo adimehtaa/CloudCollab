@@ -6,6 +6,7 @@ import cloud.devyard.cloudcollab.dto.request.UpdateProfileRequest;
 import cloud.devyard.cloudcollab.dto.request.UserPreferencesRequest;
 import cloud.devyard.cloudcollab.dto.response.UserDetailResponse;
 import cloud.devyard.cloudcollab.exception.BadRequestException;
+import cloud.devyard.cloudcollab.exception.ResourceNotFoundException;
 import cloud.devyard.cloudcollab.model.User;
 import cloud.devyard.cloudcollab.model.UserPreferences;
 import cloud.devyard.cloudcollab.model.enums.ActivityType;
@@ -18,7 +19,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetailResponse getUserProfile(Long userId){
         User user = userRepository.findById(userId)
-                .orElseThrow( () -> new UsernameNotFoundException("User not found"));
+                .orElseThrow( () -> new ResourceNotFoundException("User not found"));
 
         return mapToDetailResponse(user);
     }
@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetailResponse updateProfile(Long userId, UpdateProfileRequest request, HttpServletRequest httpRequest) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
         if (request.getLastName() != null) user.setLastName(request.getLastName());
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
     public String uploadAvatar(Long userId, MultipartFile file, HttpServletRequest httpRequest) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new UsernameNotFoundException("User not found"));
+                .orElseThrow(()-> new ResourceNotFoundException("User not found"));
 
         if(user.getAvatarUrl() != null){
             fileStorageService.deleteFile(user.getAvatarUrl());
@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void changePassword(Long userId, ChangePasswordRequest request, HttpServletRequest httpRequest) {
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new UsernameNotFoundException("User not found."));
+                .orElseThrow(()-> new ResourceNotFoundException("User not found."));
 
         if (!passwordEncoder.matches(request.getCurrentPassword() , user.getPassword())){
             throw new BadRequestException("Current password is incorrect");
@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserPreferences updatePreferences(Long userId, UserPreferencesRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found exception."));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found exception."));
 
         UserPreferences preferences = userPreferencesRepository.findByUserId(userId)
                 .orElseGet(() -> {
@@ -139,7 +139,7 @@ public class UserServiceImpl implements UserService {
         return userPreferencesRepository.findByUserId(userId)
                 .orElseGet(()-> {
                     User user = userRepository.findById(userId)
-                            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
                     UserPreferences pref= new UserPreferences();
                     pref.setUser(user);
                     return userPreferencesRepository.save(pref);
@@ -166,7 +166,7 @@ public class UserServiceImpl implements UserService {
                 .jobTitle(user.getJobTitle())
                 .department(user.getDepartment())
                 .location(user.getLocation())
-                .dateOfBirth(user.getDateOfBirth().toLocalDate())
+                .dateOfBirth(user.getDateOfBirth() != null ? user.getDateOfBirth().toLocalDate() : null)
                 .emailVerified(user.getEmailVerified())
                 .active(user.getActive())
                 .organizationId(user.getOrganization() != null ? user.getOrganization().getId() : null)
