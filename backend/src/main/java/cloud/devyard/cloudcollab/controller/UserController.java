@@ -1,9 +1,11 @@
 package cloud.devyard.cloudcollab.controller;
 
 import cloud.devyard.cloudcollab.dto.ApiResponse;
+import cloud.devyard.cloudcollab.dto.request.ChangePasswordRequest;
 import cloud.devyard.cloudcollab.dto.request.UpdateProfileRequest;
 import cloud.devyard.cloudcollab.dto.response.Status;
 import cloud.devyard.cloudcollab.dto.response.UserDetailResponse;
+import cloud.devyard.cloudcollab.exception.BadRequestException;
 import cloud.devyard.cloudcollab.security.UserPrincipal;
 import cloud.devyard.cloudcollab.service.UserInvitationService;
 import cloud.devyard.cloudcollab.service.UserService;
@@ -82,6 +84,10 @@ public class UserController {
             @RequestParam("file") MultipartFile file,
             HttpServletRequest httpRequest) {
 
+        if (file.isEmpty()) {
+            throw new BadRequestException("File is empty");
+        }
+
         String avatarUrl = userService.uploadAvatar(currentUser.getId(), file, httpRequest);
 
         var response = ApiResponse.<Map<String, String>>builder()
@@ -93,6 +99,25 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @Valid @RequestBody ChangePasswordRequest request,
+            HttpServletRequest httpRequest) {
+
+        userService.changePassword(currentUser.getId(), request, httpRequest);
+
+        var response = ApiResponse.<Void>builder()
+                .statusCode(HttpStatus.OK.value())
+                .status(Status.SUCCESS)
+                .message("Password changed successfully")
+                .data(null)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
 
 
 }
