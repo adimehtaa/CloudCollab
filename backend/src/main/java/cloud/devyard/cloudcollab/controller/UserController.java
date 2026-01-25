@@ -12,9 +12,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -72,6 +76,23 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Map<String, String>>> uploadAvatar(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest httpRequest) {
+
+        String avatarUrl = userService.uploadAvatar(currentUser.getId(), file, httpRequest);
+
+        var response = ApiResponse.<Map<String, String>>builder()
+                .statusCode(HttpStatus.OK.value())
+                .status(Status.SUCCESS)
+                .message("Avatar uploaded successfully.")
+                .data(Map.of("avatarUrl", avatarUrl))
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
 
 }
