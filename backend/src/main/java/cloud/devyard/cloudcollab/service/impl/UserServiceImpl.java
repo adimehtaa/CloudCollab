@@ -5,8 +5,10 @@ import cloud.devyard.cloudcollab.dto.request.ChangePasswordRequest;
 import cloud.devyard.cloudcollab.dto.request.UpdateProfileRequest;
 import cloud.devyard.cloudcollab.dto.request.UserPreferencesRequest;
 import cloud.devyard.cloudcollab.dto.response.UserDetailResponse;
+import cloud.devyard.cloudcollab.dto.response.UserPreferencesResponse;
 import cloud.devyard.cloudcollab.exception.BadRequestException;
 import cloud.devyard.cloudcollab.exception.ResourceNotFoundException;
+import cloud.devyard.cloudcollab.model.Role;
 import cloud.devyard.cloudcollab.model.User;
 import cloud.devyard.cloudcollab.model.UserPreferences;
 import cloud.devyard.cloudcollab.model.enums.ActivityType;
@@ -23,6 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -101,7 +105,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserPreferences updatePreferences(Long userId, UserPreferencesRequest request) {
+    public UserPreferencesResponse updatePreferences(Long userId, UserPreferencesRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found exception."));
 
@@ -131,20 +135,26 @@ public class UserServiceImpl implements UserService {
         if (request.getShowOnlineStatus() != null)
             preferences.setShowOnlineStatus(request.getShowOnlineStatus());
 
-        return userPreferencesRepository.save(preferences);
+        UserPreferences updatedPref = userPreferencesRepository.save(preferences);
+        return mapToUserPreferencesResponse(updatedPref, user);
     }
 
     @Override
-    public UserPreferences getPreferences(Long userId) {
-        return userPreferencesRepository.findByUserId(userId)
-                .orElseGet(()-> {
+    public UserPreferencesResponse getPreferences(Long userId) {
+
+        UserPreferences pref = userPreferencesRepository.findByUserId(userId)
+                .orElseGet(() -> {
                     User user = userRepository.findById(userId)
                             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-                    UserPreferences pref= new UserPreferences();
-                    pref.setUser(user);
-                    return userPreferencesRepository.save(pref);
+
+                    UserPreferences newPref = new UserPreferences();
+                    newPref.setUser(user);
+                    return userPreferencesRepository.save(newPref);
                 });
+
+        return mapToUserPreferencesResponse(pref, pref.getUser());
     }
+
 
     @Override
     public Page<User> searchUsers(String query, Long organizationId, Pageable pageable) {
@@ -176,5 +186,58 @@ public class UserServiceImpl implements UserService {
                 .lastLoginAt(user.getLastLogin())
                 .build();
     }
+
+    private UserPreferencesResponse mapToUserPreferencesResponse(UserPreferences pref , User user) {
+
+        return UserPreferencesResponse.builder()
+                // ---- preference fields ----
+                .id(pref.getId())
+                .emailNotifications(pref.getEmailNotifications())
+                .pushNotifications(pref.getPushNotifications())
+                .smsNotifications(pref.getSmsNotifications())
+                .theme(pref.getTheme())
+                .language(pref.getLanguage())
+                .timezone(pref.getTimezone())
+                .profilePublic(pref.getProfilePublic())
+                .showEmail(pref.getShowEmail())
+                .showOnlineStatus(pref.getShowOnlineStatus())
+
+                // ---- user fields ----
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .avatarUrl(user.getAvatarUrl())
+                .emailVerified(user.getEmailVerified())
+                .active(user.getActive())
+                .bio(user.getBio())
+                .phoneNumber(user.getPhoneNumber())
+                .jobTitle(user.getJobTitle())
+                .department(user.getDepartment())
+                .location(user.getLocation())
+                .dateOfBirth(user.getDateOfBirth() != null ? user.getDateOfBirth().toLocalDate() : null)
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .lastLoginAt(user.getLastLogin())
+
+                // ---- organization ----
+                .organizationId(
+                        user.getOrganization() != null ? user.getOrganization().getId() : null
+                )
+                .organizationName(
+                        user.getOrganization() != null ? user.getOrganization().getName() : null
+                )
+
+                // ---- roles ----
+                .roles(
+                        user.getRoles() != null
+                                ? user.getRoles()
+                                .stream()
+                                .map(role -> role.getName().name()).toList()
+                                : List.of()
+                )
+                .build();
+    }
+
 
 }

@@ -3,9 +3,12 @@ package cloud.devyard.cloudcollab.controller;
 import cloud.devyard.cloudcollab.dto.ApiResponse;
 import cloud.devyard.cloudcollab.dto.request.ChangePasswordRequest;
 import cloud.devyard.cloudcollab.dto.request.UpdateProfileRequest;
+import cloud.devyard.cloudcollab.dto.request.UserPreferencesRequest;
 import cloud.devyard.cloudcollab.dto.response.Status;
 import cloud.devyard.cloudcollab.dto.response.UserDetailResponse;
+import cloud.devyard.cloudcollab.dto.response.UserPreferencesResponse;
 import cloud.devyard.cloudcollab.exception.BadRequestException;
+import cloud.devyard.cloudcollab.model.UserPreferences;
 import cloud.devyard.cloudcollab.security.UserPrincipal;
 import cloud.devyard.cloudcollab.service.UserInvitationService;
 import cloud.devyard.cloudcollab.service.UserService;
@@ -119,6 +122,32 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/me/preferences")
+    public ResponseEntity<@NonNull ApiResponse<UserPreferencesResponse>> getPreferences(@AuthenticationPrincipal UserPrincipal currentUser) {
+        UserPreferencesResponse preferences = userService.getPreferences(currentUser.getId());
+        var response = ApiResponse.<UserPreferencesResponse>builder()
+                .statusCode(HttpStatus.OK.value())
+                .status(Status.SUCCESS)
+                .message("Fetch user preferences successfully.")
+                .data(preferences)
+                .build();
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/me/preferences")
+    public ResponseEntity<@NonNull ApiResponse<UserPreferencesResponse>> updatePreferences(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestBody UserPreferencesRequest request) {
+        UserPreferencesResponse updated = userService.updatePreferences(currentUser.getId(), request);
+        var response = ApiResponse.<UserPreferencesResponse>builder()
+                .statusCode(HttpStatus.OK.value())
+                .status(Status.SUCCESS)
+                .message("Update user preferences successfully.")
+                .data(updated)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
 }
