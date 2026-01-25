@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class UserController {
     private final UserInvitationService userInvitationService;
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserDetailResponse>> getCurrentUser(@AuthenticationPrincipal UserPrincipal currentUser){
+    public ResponseEntity<@NonNull ApiResponse<UserDetailResponse>> getCurrentUser(@AuthenticationPrincipal UserPrincipal currentUser){
 
         UserDetailResponse user = userService.getUserProfile(currentUser.getId());
         var response = ApiResponse.<UserDetailResponse>builder()
@@ -46,7 +47,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<UserDetailResponse>> getUserById(
+    public ResponseEntity<@NonNull ApiResponse<UserDetailResponse>> getUserById(
             @PathVariable Long userId) {
 
         UserDetailResponse user = userService.getUserProfile(userId);
@@ -62,7 +63,7 @@ public class UserController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<ApiResponse<UserDetailResponse>> updateProfile(
+    public ResponseEntity<@NonNull ApiResponse<UserDetailResponse>> updateProfile(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @Valid @RequestBody UpdateProfileRequest request,
             HttpServletRequest httpRequest
@@ -79,7 +80,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Map<String, String>>> uploadAvatar(
+    public ResponseEntity<@NonNull ApiResponse<Map<String, String>>> uploadAvatar(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestParam("file") MultipartFile file,
             HttpServletRequest httpRequest) {
@@ -101,7 +102,7 @@ public class UserController {
     }
 
     @PutMapping("/me/password")
-    public ResponseEntity<ApiResponse<Void>> changePassword(
+    public ResponseEntity<@NonNull ApiResponse<Void>> changePassword(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @Valid @RequestBody ChangePasswordRequest request,
             HttpServletRequest httpRequest) {

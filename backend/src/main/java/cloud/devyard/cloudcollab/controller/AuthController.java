@@ -12,6 +12,7 @@ import cloud.devyard.cloudcollab.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,7 +30,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest loginRequest){
+    public ResponseEntity<@NonNull ApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest loginRequest){
         JwtResponse jwtResponse = authService.login(loginRequest);
         var response = ApiResponse.<JwtResponse>builder()
                 .status(Status.SUCCESS)
@@ -43,9 +44,9 @@ public class AuthController {
 
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<UserResponse>> signup(@Valid @RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<@NonNull ApiResponse<UserResponse>> signup(@Valid @RequestBody SignupRequest signupRequest) {
         UserResponse userResponse = authService.signup(signupRequest);
-        ApiResponse<UserResponse> response = ApiResponse.<UserResponse>builder()
+        var response = ApiResponse.<UserResponse>builder()
                 .status(Status.SUCCESS)
                 .message("User register successfully")
                 .statusCode(HttpStatus.CREATED.value())
@@ -56,7 +57,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<JwtResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<@NonNull ApiResponse<JwtResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
     JwtResponse jwtResponse = authService.refreshToken(request.getRefreshToken());
         var response = ApiResponse.<JwtResponse>builder()
                 .status(Status.SUCCESS)
@@ -69,12 +70,13 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<?>> logout(@AuthenticationPrincipal UserPrincipal currentUser){
+    public ResponseEntity<@NonNull ApiResponse<Void>> logout(@AuthenticationPrincipal UserPrincipal currentUser){
         authService.logout(currentUser.getId());
-        var response = ApiResponse.builder()
+        var response = ApiResponse.<Void>builder()
                 .status(Status.SUCCESS)
                 .statusCode(HttpStatus.OK.value())
                 .message("Logged out successfully")
+                .data(null)
                 .build();
 
         return ResponseEntity.ok(response);
