@@ -1,3 +1,4 @@
+import type { ApiResponse } from "../types/ApiResponse";
 import apiClient from "./axios"
 
 export const userAPI = {
@@ -8,17 +9,17 @@ export const userAPI = {
     },
 
     getUserById(userId : number) {
-        return apiClient.get(`/users/${userId}`);
+        return apiClient.get<ApiResponse<any>>(`/users/${userId}`);
     },
 
     updateProfile(data : unknown){
-        return apiClient.put('/users/me', data)
+        return apiClient.put<ApiResponse<any>>('/users/me', data)
     },
 
     uploadAvatar(file : any){
         const formData = new FormData();
         formData.append('file', file);
-        return apiClient.post('/users/me/avatar' , formData, {
+        return apiClient.post<ApiResponse<any>>('/users/me/avatar' , formData, {
             headers:{
                 'Content-Type': 'multipart/form-data',
             },
@@ -26,28 +27,28 @@ export const userAPI = {
     },
 
     changePassword(data :any) {
-        return apiClient.put('/users/me/password', data);
+        return apiClient.put<ApiResponse<any>>('/users/me/password', data);
     },
 
     // Preferences
     getPreferences() {
-        return apiClient.get('/users/me/preferences');
+        return apiClient.get<ApiResponse<any>>('/users/me/preferences');
     },
   
     updatePreferences(data :any) {
-        return apiClient.put('/users/me/preferences', data);
+        return apiClient.put<ApiResponse<any>>('/users/me/preferences', data);
     },
 
     // Invitations
     inviteUser(data : any) {
-        return apiClient.post('/users/invite', data);
+        return apiClient.post<ApiResponse<any>>('/users/invite', data);
     },
     
     getInvitations() {
-        return apiClient.get('/users/invitations');
+        return apiClient.get<ApiResponse<any>>('/users/invitations');
     },
 
     cancelInvitation(invitationId : number) {
-        return apiClient.delete(`/users/invitations/${invitationId}`);
+        return apiClient.delete<ApiResponse<any>>(`/users/invitations/${invitationId}`);
     },
 }
