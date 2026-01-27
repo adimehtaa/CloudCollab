@@ -201,14 +201,17 @@ const errorMessage = ref('');
 const defaultAvatar = 'https://ui-avatars.com/api/?name=User&background=2d3748&color=fff&size=200';
 
 const avatarUrl = computed(() => {
-  if (userStore.profile?.avatarUrl) {
-    if (userStore.profile.data/avatarUrl.startsWith('/')) {
-      return import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '') + userStore.profile.avatarUrl;
-    }
-    return userStore.profile.avatarUrl;
+  const avatar = userStore.profile?.avatarUrl;
+  if (!avatar) return null;
+
+  if (avatar.startsWith('/')) {
+    return (
+      import.meta.env.VITE_API_BASE_URL.replace('/v1', '') + avatar
+    );
   }
-  return null;
+  return avatar;
 });
+
 
 watch(
   () => userStore.profile,

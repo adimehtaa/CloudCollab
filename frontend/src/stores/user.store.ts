@@ -44,6 +44,37 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
+    async function uploadAvatar(file:any) {
+        try {
+            loading.value = true;
+            error.value = null;
+            const response = await userAPI.uploadAvatar(file);
+
+            await fetchProfile();
+            return response.data;
+        } catch (err : any) {
+            error.value = err.response?.data?.message || 'Failed to upload avatar';
+            throw err;
+        } finally {
+            loading.value = false;
+        }
+
+    }
+
+    async function changePassword(data :unknown) {
+        try {
+            loading.value = true;
+            error.value = null;
+            const response = await userAPI.changePassword(data);
+            return response.data.data;
+        } catch (err : any) {
+            error.value = err.response?.data?.message || 'Failed to change password';
+            throw err;
+        } finally {
+            loading.value = false;
+        }
+    }
+
 
     return {
         profile,
@@ -51,6 +82,8 @@ export const useUserStore = defineStore('user', () => {
         loading,
         error,
         fetchProfile,
-        updateProfile
+        updateProfile,
+        uploadAvatar,
+        changePassword
     }
 })
