@@ -13,11 +13,9 @@ export const useUserStore = defineStore('user', () => {
         try {
             loading.value = true;
             error.value = null;
-            const response = await userAPI.getCurrentUser();
 
+            const response = await userAPI.getCurrentUser();
             profile.value = response.data.data;
-            console.log(response.data)
-            
             return await response.data;
 
         } catch (err: any) {
@@ -34,11 +32,9 @@ export const useUserStore = defineStore('user', () => {
             error.value = null
 
             const response = await userAPI.updateProfile(data)
-
             profile.value = response.data.data
-            console.log(response.data.data)
+            return response.data;
 
-            return response.data.data
         } catch (err: any) {
             error.value =
                 err.response?.data?.message || 'Failed to update profile'
