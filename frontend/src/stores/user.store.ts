@@ -1,9 +1,8 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { userAPI } from "../api/user.api";
-import type { ApiResponse } from "../types/ApiResponse";
 
-export const useUserStore = defineStore('user' , () => {
+export const useUserStore = defineStore('user', () => {
 
     const profile = ref(null);
     const preferences = ref(null);
@@ -14,15 +13,48 @@ export const useUserStore = defineStore('user' , () => {
         try {
             loading.value = true;
             error.value = null;
-            const response= userAPI.getCurrentUser();
-            // profile.value = response;
-            // return response.data;
+            const response = await userAPI.getCurrentUser();
+
+            profile.value = response.data.data;
+            console.log(response.data)
             
-        } catch (err : any) {
+            return await response.data;
+
+        } catch (err: any) {
             error.value = err.response?.data?.message || 'Failed to fetch profile';
             throw err;
-        }finally{
+        } finally {
             loading.value = false
         }
+    };
+
+    async function updateProfile(data: any) {
+        try {
+            loading.value = true
+            error.value = null
+
+            const response = await userAPI.updateProfile(data)
+
+            profile.value = response.data.data
+            console.log(response.data.data)
+
+            return response.data.data
+        } catch (err: any) {
+            error.value =
+                err.response?.data?.message || 'Failed to update profile'
+            throw err
+        } finally {
+            loading.value = false
+        }
+    }
+
+
+    return {
+        profile,
+        preferences,
+        loading,
+        error,
+        fetchProfile,
+        updateProfile
     }
 })
