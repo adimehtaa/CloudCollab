@@ -116,6 +116,20 @@
               </svg>
             </div>
             <div>
+              <p class="text-sm font-medium text-theme-primary">Last Login</p>
+              <p class="text-xs text-theme-tertiary">You logged in successfully</p>
+            </div>
+          </div>
+          <span class="text-xs text-theme-tertiary">{{ lastLoginAt }}</span>
+        </div>
+        <div class="flex items-center justify-between p-4 bg-theme-secondary rounded-theme-md">
+          <div class="flex items-center space-x-3">
+            <div class="p-2 rounded-full" style="background-color: #d1fae5;">
+              <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
               <p class="text-sm font-medium text-theme-primary">Password changed</p>
               <p class="text-xs text-theme-tertiary">Successfully updated your password</p>
             </div>
@@ -130,8 +144,12 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useUserStore } from '../../stores/user.store';
+import { calculateHourDay } from '../../utils/datetime';
 
 const userStore = useUserStore();
+const lastLoginAt = computed(()=>{
+  return calculateHourDay(userStore.profile.lastLoginAt);
+})
 
 const form = ref({
   currentPassword: '',
