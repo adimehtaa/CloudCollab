@@ -8,7 +8,6 @@ import cloud.devyard.cloudcollab.dto.response.UserDetailResponse;
 import cloud.devyard.cloudcollab.dto.response.UserPreferencesResponse;
 import cloud.devyard.cloudcollab.exception.BadRequestException;
 import cloud.devyard.cloudcollab.exception.ResourceNotFoundException;
-import cloud.devyard.cloudcollab.model.Role;
 import cloud.devyard.cloudcollab.model.User;
 import cloud.devyard.cloudcollab.model.UserPreferences;
 import cloud.devyard.cloudcollab.model.enums.ActivityType;
@@ -26,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -98,6 +98,7 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("New passwords do not match");
         }
 
+        user.setChangePassword(LocalDateTime.now());
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
@@ -184,6 +185,7 @@ public class UserServiceImpl implements UserService {
                 .roles(user.getRoles().stream().map(role -> role.getName().name()).toList())
                 .createdAt(user.getCreatedAt())
                 .lastLoginAt(user.getLastLogin())
+                .passwordChange(user.getChangePassword())
                 .build();
     }
 
@@ -203,6 +205,7 @@ public class UserServiceImpl implements UserService {
                 .showOnlineStatus(pref.getShowOnlineStatus())
 
                 // ---- user fields ----
+                .userId(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())

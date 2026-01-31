@@ -33,4 +33,5 @@ public class UserDetailResponse {
     private List<String> roles;
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
+    private LocalDateTime passwordChange;
 }

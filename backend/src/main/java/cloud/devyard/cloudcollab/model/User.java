@@ -59,6 +59,8 @@ public class User {
 
     private LocalDateTime lastLogin;
 
+    private LocalDateTime changePassword;
+
     @Column(length = 500)
     private String bio;
 

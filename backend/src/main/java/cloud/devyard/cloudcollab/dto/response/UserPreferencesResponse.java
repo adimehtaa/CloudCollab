@@ -18,6 +18,7 @@ import java.util.List;
 public class UserPreferencesResponse {
 
     private Long id;
+    private  Long userId;
     private String username;
     private String email;
     private String firstName;
