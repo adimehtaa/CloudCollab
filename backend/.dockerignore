@@ -1,0 +1,33 @@
+# IDE and OS junk
+.idea/
+*.iml
+*.iws
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Build outputs
+target/
+*.jar
+*.war
+
+# Logs and temp files
+*.log
+logs/
+tmp/
+temp/
+
+# Node / frontend (if present)
+node_modules/
+dist/
+build/
+*.map
+
+# Test and coverage
+.coverage
+.jacoco.exec
