@@ -134,7 +134,7 @@
               <p class="text-xs text-theme-tertiary">Successfully updated your password</p>
             </div>
           </div>
-          <span class="text-xs text-theme-tertiary">2 hours ago</span>
+          <span class="text-xs text-theme-tertiary">{{ passwordChangeTime }}</span>
         </div>
       </div>
     </div>
@@ -149,6 +149,10 @@ import { calculateHourDay } from '../../utils/datetime';
 const userStore = useUserStore();
 const lastLoginAt = computed(()=>{
   return calculateHourDay(userStore.profile.lastLoginAt);
+})
+
+const passwordChangeTime = computed(()=>{
+  return calculateHourDay(userStore.profile.passwordChange);
 })
 
 const form = ref({
