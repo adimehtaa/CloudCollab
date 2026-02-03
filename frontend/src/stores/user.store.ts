@@ -75,6 +75,17 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
+    async function fetchPreferences(){
+        try {
+            const response = await userAPI.getPreferences();
+            preferences.value = response.data.data;
+            return response.data;
+        } catch (err :any) {
+            error.value = err.response?.data?.message || 'Failed to fetch preferences';
+            throw err;
+        }
+    }
+
 
     return {
         profile,
@@ -84,6 +95,7 @@ export const useUserStore = defineStore('user', () => {
         fetchProfile,
         updateProfile,
         uploadAvatar,
-        changePassword
+        changePassword,
+        fetchPreferences
     }
 })
