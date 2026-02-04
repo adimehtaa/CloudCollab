@@ -86,6 +86,21 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
+    async function updatePreferences(data:any) {
+    try {
+      loading.value = true;
+      error.value = null;
+      const response = await userAPI.updatePreferences(data);
+      preferences.value = response.data;
+      return response.data;
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Failed to update preferences';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
 
     return {
         profile,
