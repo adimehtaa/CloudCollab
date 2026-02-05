@@ -45,7 +45,7 @@ export interface ChangePasswordRequest {
 
 // User Preferences
 export interface UserPreferences {
-  theme?: 'light' | 'dark' | 'system';
+  theme?: string;
   language?: string;
   timezone?: string;
   notifications?: {
