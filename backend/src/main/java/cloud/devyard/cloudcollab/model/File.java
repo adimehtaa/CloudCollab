@@ -14,7 +14,10 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @Table(name = "files", indexes = {
-
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_organization_id", columnList = "organization_id"),
+        @Index(name = "idx_folder_id", columnList = "folder_id"),
+        @Index(name = "idx_parent_file_id", columnList = "parent_file_id")
 })
 @Builder
 @NoArgsConstructor
