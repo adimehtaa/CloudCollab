@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
@@ -41,22 +42,32 @@ public class LocalStorageService implements StorageService {
 
     @Override
     public InputStream downloadFile(String key) {
-
-        return null;
+        try {
+            Path filePath = Paths.get(uploadDir, key);
+            return Files.newInputStream(filePath);
+        } catch (IOException e) {
+            throw new BadRequestException("Failed to download file: " + e.getMessage());
+        }
     }
 
     @Override
     public void deleteFile(String key) {
-
+        try{
+            Path filePath = Paths.get(uploadDir , key);
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            log.error("Failed to delete file: {}", key, e);
+        }
     }
 
     @Override
     public String generatePresignedUrl(String key, int expirationMinutes) {
-        return "";
+        return "/uploads/"+ key;
     }
 
     @Override
     public boolean fileExists(String key) {
-        return false;
+        Path filePath = Paths.get(uploadDir, key);
+        return Files.exists(filePath);
     }
 }
