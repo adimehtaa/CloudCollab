@@ -5,7 +5,9 @@ import cloud.devyard.cloudcollab.dto.request.UpdateFileRequest;
 import cloud.devyard.cloudcollab.dto.response.FileResponse;
 import cloud.devyard.cloudcollab.dto.response.StorageStatsResponse;
 import cloud.devyard.cloudcollab.exception.BadRequestException;
-import cloud.devyard.cloudcollab.model.Organization;
+import cloud.devyard.cloudcollab.exception.ResourceNotFoundException;
+import cloud.devyard.cloudcollab.model.*;
+import cloud.devyard.cloudcollab.model.enums.ActivityType;
 import cloud.devyard.cloudcollab.model.enums.FileStatus;
 import cloud.devyard.cloudcollab.model.enums.PermissionType;
 import cloud.devyard.cloudcollab.repository.FilePermissionRepository;
@@ -22,12 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -70,7 +75,46 @@ public class FileServiceImpl implements FileService {
         validateFile(file);
         checkStorageQuota(organizationId,file.getSize());
 
-        return null;
+        User user = userRepository.findById(userId).orElseThrow(()-> new UsernameNotFoundException("User not found"));
+
+        Organization organization = organizationService.getOrganizationById(organizationId);
+
+        Folder folder = null;
+        if (request.getFolderId() != null){
+            folder = folderRepository.findById(request.getFolderId()).orElseThrow(() -> new ResourceNotFoundException("Folder not found"));
+        }
+
+        // Upload to storage
+        String storageKey = storageService.uploadFile(file,
+                folder != null ? "folder-" + folder.getId() : "root",
+                organizationId);
+
+        boolean isPublic = Boolean.TRUE.equals(request.getIsPublic());
+
+        File fileEntry = File.builder()
+                .name(file.getOriginalFilename())
+                .description(request.getDescription())
+                .storageKey(storageKey)
+                .mimeType(file.getContentType())
+                .size(file.getSize())
+                .fileExtension(getFileExtension(
+                        Objects.requireNonNull(file.getOriginalFilename())))
+                .uploadedBy(user)
+                .organization(organization)
+                .folder(folder)
+                .status(FileStatus.ACTIVE)
+                .isPublic(isPublic)
+                .shareToken(isPublic ? UUID.randomUUID().toString() : null)
+                .build();
+
+        File saveFile = fileRepository.save(fileEntry);
+
+        // Create owner permission
+        createFilePermission(saveFile , user , PermissionType.OWNER, user);
+
+        userActivityService.logActivity(user, ActivityType.FILE_UPLOAD, "Uploaded file: " + file.getOriginalFilename(), httpRequest);
+
+        return mapToResponse(saveFile);
     }
 
     @Override
@@ -149,7 +193,7 @@ public class FileServiceImpl implements FileService {
                     (maxFileSize / 1024 / 1024) + "MB");
         }
 
-        String extension = getFileExtension(file.getOriginalFilename());
+        String extension = getFileExtension(Objects.requireNonNull(file.getOriginalFilename()));
         List<String> allowed = Arrays.asList(allowedExtensions.split(","));
         if (!allowed.contains(extension.toLowerCase())){
             throw new BadRequestException("File type not allowed. Allowed types:" + allowedExtensions);
@@ -180,5 +224,46 @@ public class FileServiceImpl implements FileService {
             case "BUSINESS", "ENTERPRISE" -> businessQuota;
             default -> freeQuota;
         };
+    }
+
+    private void createFilePermission(File file , User user, PermissionType permissionType, User grantedBy){
+        FilePermission filePermission = FilePermission.builder()
+                .file(file)
+                .user(user)
+                .permissionType(permissionType)
+                .grantedBy(grantedBy)
+                .build();
+        filePermissionRepository.save(filePermission);
+    }
+
+    private FileResponse mapToResponse(File file) {
+
+        return FileResponse.builder()
+                .id(file.getId())
+                .name(file.getName())
+                .description(file.getDescription())
+                .mimeType(file.getMimeType())
+                .size(file.getSize())
+                .fileExtension(file.getFileExtension())
+                .version(file.getVersion())
+                .isPublic(file.getIsPublic())
+                .shareToken(file.getShareToken())
+                .uploadedById(file.getUploadedBy().getId())
+                .uploadedByName(
+                        file.getUploadedBy().getFirstName() + " " +
+                                file.getUploadedBy().getLastName()
+                )
+                .folderId(file.getFolder() != null ? file.getFolder().getId() : null)
+                .folderName(file.getFolder() != null ? file.getFolder().getName() : null)
+                .uploadedAt(file.getUploadedAt())
+                .updatedAt(file.getUpdatedAt())
+
+                // Generate download URL (15 minutes expiry)
+                .downloadUrl(
+                        storageService.generatePresignedUrl(
+                                file.getStorageKey(), 15
+                        )
+                )
+                .build();
     }
 }
