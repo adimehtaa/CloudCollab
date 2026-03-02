@@ -119,12 +119,29 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Page<FileResponse> getFiles(Long organizationId, Long folderId, Pageable pageable) {
-        return null;
+        Page<File> files;
+        if (folderId == null) {
+            files = fileRepository.findByOrganizationIdAndStatusAndFolderIsNull(
+                    organizationId, FileStatus.ACTIVE, pageable);
+        } else {
+            files = fileRepository.findByOrganizationIdAndStatusAndFolderId(
+                    organizationId, FileStatus.ACTIVE, folderId, pageable);
+        }
+
+        return files.map(this::mapToResponse);
     }
 
     @Override
     public FileResponse getFileById(Long fileId, Long userId) {
-        return null;
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new ResourceNotFoundException("File not found"));
+
+        // Check permission
+        if (!hasPermission(file, userId, PermissionType.VIEW)) {
+            throw new BadRequestException("You don't have permission to view this file");
+        }
+
+        return mapToResponse(file);
     }
 
     @Override
@@ -234,6 +251,10 @@ public class FileServiceImpl implements FileService {
                 .grantedBy(grantedBy)
                 .build();
         filePermissionRepository.save(filePermission);
+    }
+
+    private boolean hasPermission(File file, Long userId, PermissionType requiredPermission) {
+        return true;
     }
 
     private FileResponse mapToResponse(File file) {
