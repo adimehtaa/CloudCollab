@@ -29,10 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -254,7 +251,36 @@ public class FileServiceImpl implements FileService {
     }
 
     private boolean hasPermission(File file, Long userId, PermissionType requiredPermission) {
-        return true;
+
+        // Owner always has all permissions
+        if (file.getUploadedBy().getId().equals(userId)){
+            return true;
+        }
+
+        // Check explicit permissions
+        Optional<FilePermission> permission = filePermissionRepository.findByFileIdAndUserId(
+                file.getId(), userId);
+
+        if (permission.isEmpty()) {
+            return false;
+        }
+
+        PermissionType userPermission = permission.get().getPermissionType();
+
+        // Permission hierarchy: OWNER > DELETE > EDIT > SHARE > VIEW
+        return switch (requiredPermission) {
+            case VIEW -> true; // All permissions include VIEW
+            case SHARE -> userPermission == PermissionType.SHARE ||
+                    userPermission == PermissionType.EDIT ||
+                    userPermission == PermissionType.DELETE ||
+                    userPermission == PermissionType.OWNER;
+            case EDIT -> userPermission == PermissionType.EDIT ||
+                    userPermission == PermissionType.DELETE ||
+                    userPermission == PermissionType.OWNER;
+            case DELETE -> userPermission == PermissionType.DELETE ||
+                    userPermission == PermissionType.OWNER;
+            case OWNER -> userPermission == PermissionType.OWNER;
+        };
     }
 
     private FileResponse mapToResponse(File file) {
