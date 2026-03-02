@@ -26,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
@@ -141,14 +142,36 @@ public class FileServiceImpl implements FileService {
         return mapToResponse(file);
     }
 
-    @Override
     public FileResponse getFileByShareToken(String shareToken) {
-        return null;
+        File file = fileRepository.findByShareToken(shareToken)
+                .orElseThrow(() -> new ResourceNotFoundException("File not found"));
+
+        if (!file.getIsPublic()) {
+            throw new BadRequestException("This file is not publicly shared");
+        }
+
+        return mapToResponse(file);
     }
 
-    @Override
+    @Transactional
     public FileResponse updateFile(Long fileId, UpdateFileRequest request, Long userId) {
-        return null;
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new ResourceNotFoundException("File not found"));
+
+        if (!hasPermission(file, userId, PermissionType.EDIT)) {
+            throw new BadRequestException("You don't have permission to edit this file");
+        }
+
+        if (request.getName() != null) file.setName(request.getName());
+        if (request.getDescription() != null) file.setDescription(request.getDescription());
+        if (request.getFolderId() != null) {
+            Folder folder = folderRepository.findById(request.getFolderId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Folder not found"));
+            file.setFolder(folder);
+        }
+
+        File updated = fileRepository.save(file);
+        return mapToResponse(updated);
     }
 
     @Override
