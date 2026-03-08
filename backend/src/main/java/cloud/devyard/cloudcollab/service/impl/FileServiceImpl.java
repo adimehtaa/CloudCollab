@@ -21,6 +21,7 @@ import cloud.devyard.cloudcollab.service.UserActivityService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,10 +31,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
 
@@ -108,7 +111,7 @@ public class FileServiceImpl implements FileService {
         File saveFile = fileRepository.save(fileEntry);
 
         // Create owner permission
-        createFilePermission(saveFile , user , PermissionType.OWNER, user);
+        createFilePermission(saveFile , user , user);
 
         userActivityService.logActivity(user, ActivityType.FILE_UPLOAD, "Uploaded file: " + file.getOriginalFilename(), httpRequest);
 
@@ -116,8 +119,8 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public Page<FileResponse> getFiles(Long organizationId, Long folderId, Pageable pageable) {
-        Page<File> files;
+    public Page<@NonNull FileResponse> getFiles(Long organizationId, Long folderId, Pageable pageable) {
+        Page<@NonNull File> files;
         if (folderId == null) {
             files = fileRepository.findByOrganizationIdAndStatusAndFolderIsNull(
                     organizationId, FileStatus.ACTIVE, pageable);
@@ -176,6 +179,22 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void deleteFile(Long fileId, Long userId, HttpServletRequest httpRequest) {
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(()-> new ResourceNotFoundException("File not found"));
+
+        if(!hasPermission(file, userId, PermissionType.DELETE)){
+            throw new BadRequestException("You don't have permission to delete this file");
+        }
+
+        //soft delete
+        file.setStatus(FileStatus.DELETED);
+        file.setDeletedAt(LocalDateTime.now());
+        fileRepository.save(file);
+
+        // Note: For hard delete, uncomment:
+        storageService.deleteFile(file.getStorageKey());
+        fileRepository.delete(file);
+
 
     }
 
@@ -263,11 +282,11 @@ public class FileServiceImpl implements FileService {
         };
     }
 
-    private void createFilePermission(File file , User user, PermissionType permissionType, User grantedBy){
+    private void createFilePermission(File file , User user, User grantedBy){
         FilePermission filePermission = FilePermission.builder()
                 .file(file)
                 .user(user)
-                .permissionType(permissionType)
+                .permissionType(PermissionType.OWNER)
                 .grantedBy(grantedBy)
                 .build();
         filePermissionRepository.save(filePermission);
