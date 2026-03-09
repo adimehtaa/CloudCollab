@@ -195,17 +195,28 @@ public class FileServiceImpl implements FileService {
         storageService.deleteFile(file.getStorageKey());
         fileRepository.delete(file);
 
-
+        User user = userRepository.findById(userId).orElseThrow();
+        userActivityService.logActivity(user,ActivityType.FILE_DELETE, "Deleted file: " + file.getName(),httpRequest);
     }
 
     @Override
     public InputStream downloadFile(Long fileId, Long userId) {
-        return null;
+        File file = fileRepository.findById(fileId).orElseThrow(()-> new ResourceNotFoundException("File not found."));
+
+        if(!hasPermission(file, userId, PermissionType.VIEW)){
+            throw new BadRequestException("You don't have permission to download this file");
+        }
+        return storageService.downloadFile(file.getStorageKey());
     }
 
     @Override
     public String generateDownloadUrl(Long fileId, Long userId, int expirationMinutes) {
-        return "";
+        File file = fileRepository.findById(fileId).orElseThrow(()-> new ResourceNotFoundException("File not Found"));
+
+        if (!hasPermission(file,userId, PermissionType.VIEW)){
+            throw new BadRequestException("You don't have permission to access this file");
+        }
+        return storageService.generatePresignedUrl(file.getStorageKey(),expirationMinutes);
     }
 
     @Override
