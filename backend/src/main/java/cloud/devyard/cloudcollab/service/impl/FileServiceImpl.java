@@ -33,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -268,7 +269,23 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<FileResponse> getFileVersions(Long fileId, Long userId) {
-        return List.of();
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new ResourceNotFoundException("File not found"));
+
+        if (!hasPermission(file, userId, PermissionType.VIEW)) {
+            throw new BadRequestException("You don't have permission to view versions");
+        }
+
+        // Get all versions of the root file
+        File rootFile = file.getParentFile() != null ? file.getParentFile() : file;
+        List<File> versions = fileRepository.findByParentFileIdOrderByVersionDesc(rootFile.getId());
+
+        // Include root file
+        versions.addFirst(rootFile);
+
+        return versions.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
