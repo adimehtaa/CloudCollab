@@ -221,12 +221,49 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Page<FileResponse> searchFiles(Long organizationId, String query, Pageable pageable) {
-        return null;
+        return fileRepository.searchFiles(organizationId, FileStatus.ACTIVE, query, pageable).map(this::mapToResponse);
     }
 
     @Override
     public FileResponse createNewVersion(Long fileId, MultipartFile newFile, Long userId, HttpServletRequest httpRequest) {
-        return null;
+        File originalFile = fileRepository.findById(fileId)
+                .orElseThrow(() -> new ResourceNotFoundException("File not found"));
+
+        if (!hasPermission(originalFile, userId, PermissionType.EDIT)) {
+            throw new BadRequestException("You don't have permission to create a new version");
+        }
+
+        validateFile(newFile);
+        checkStorageQuota(originalFile.getOrganization().getId(), newFile.getSize());
+
+        User user = userRepository.findById(userId).orElseThrow();
+
+        // Upload new version
+        String storageKey = storageService.uploadFile(newFile,
+                "versions", originalFile.getOrganization().getId());
+
+        // Create new version
+        File newVersion = File.builder()
+                .name(originalFile.getName())
+                .description("Version " + (originalFile.getVersion() + 1))
+                .storageKey(storageKey)
+                .mimeType(newFile.getContentType())
+                .size(newFile.getSize())
+                .fileExtension(getFileExtension(Objects.requireNonNull(newFile.getOriginalFilename())))
+                .uploadedBy(user)
+                .organization(originalFile.getOrganization())
+                .folder(originalFile.getFolder())
+                .status(FileStatus.ACTIVE)
+                .parentFile(originalFile)
+                .version(originalFile.getVersion() + 1)
+                .build();
+
+        File savedVersion = fileRepository.save(newVersion);
+
+        userActivityService.logActivity(user, ActivityType.FILE_UPLOAD,
+                "Created new version of file: " + originalFile.getName(), httpRequest);
+
+        return mapToResponse(savedVersion);
     }
 
     @Override
