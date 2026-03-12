@@ -323,7 +323,14 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void revokeFileAccess(Long fileId, Long targetUserId, Long currentUserId) {
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new ResourceNotFoundException("File not Found."));
 
+        if(!hasPermission(file, currentUserId, PermissionType.SHARE)){
+            throw new BadRequestException("You don't have permission to revoke access");
+        }
+
+        filePermissionRepository.deleteByFileIdAndUserId(fileId, targetUserId);
     }
 
     // Helper methods
