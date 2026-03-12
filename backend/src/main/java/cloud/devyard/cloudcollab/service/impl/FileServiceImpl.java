@@ -112,7 +112,7 @@ public class FileServiceImpl implements FileService {
         File saveFile = fileRepository.save(fileEntry);
 
         // Create owner permission
-        createFilePermission(saveFile , user , user);
+        createFilePermission(saveFile , PermissionType.OWNER , user , user);
 
         userActivityService.logActivity(user, ActivityType.FILE_UPLOAD, "Uploaded file: " + file.getOriginalFilename(), httpRequest);
 
@@ -290,12 +290,35 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public StorageStatsResponse getStorageStats(Long organizationId) {
-        return null;
+        Long usedStorage = fileRepository.getTotalStorageUsed(organizationId, FileStatus.ACTIVE);
+        if(usedStorage == null) usedStorage = 0L;
+
+        Organization organization = organizationService.getOrganizationById(organizationId);
+        Long totalQuota = getQuotaForPlan(organization.getSubscriptionPlan());
+
+        return StorageStatsResponse.builder()
+                .usedStorage(usedStorage)
+                .totalQuota(totalQuota)
+                .availableStorage(totalQuota - usedStorage)
+                .usagePercentage((usedStorage * 100.0 / totalQuota))
+                .build();
     }
 
     @Override
     public void shareFile(Long fileId, Long targetUserId, PermissionType permissionType, Long currentUserId) {
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(()-> new ResourceNotFoundException("File not Found."));
 
+        if (!hasPermission(file, currentUserId, PermissionType.SHARE)){
+            throw new BadRequestException("You don't have permission to share this file");
+        }
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Shared User not found"));
+
+        User currentUser = userRepository.findById(currentUserId).orElseThrow();
+
+        createFilePermission(file , permissionType ,targetUser , currentUser);
     }
 
     @Override
@@ -347,11 +370,11 @@ public class FileServiceImpl implements FileService {
         };
     }
 
-    private void createFilePermission(File file , User user, User grantedBy){
+    private void createFilePermission(File file ,PermissionType permissionType ,User user, User grantedBy){
         FilePermission filePermission = FilePermission.builder()
                 .file(file)
                 .user(user)
-                .permissionType(PermissionType.OWNER)
+                .permissionType(permissionType)
                 .grantedBy(grantedBy)
                 .build();
         filePermissionRepository.save(filePermission);
