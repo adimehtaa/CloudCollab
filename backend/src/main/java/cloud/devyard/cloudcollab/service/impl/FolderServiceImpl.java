@@ -69,10 +69,6 @@ public class FolderServiceImpl implements FolderService {
                 .toList();
     }
 
-
-
-
-
     private FolderResponse mapToResponse(Folder saved) {
 
         return FolderResponse.builder()
