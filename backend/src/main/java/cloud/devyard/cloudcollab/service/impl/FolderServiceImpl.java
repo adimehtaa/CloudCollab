@@ -1,7 +1,9 @@
 package cloud.devyard.cloudcollab.service.impl;
 
 import cloud.devyard.cloudcollab.dto.request.CreateFolderRequest;
+import cloud.devyard.cloudcollab.dto.request.UpdateFolderRequest;
 import cloud.devyard.cloudcollab.dto.response.FolderResponse;
+import cloud.devyard.cloudcollab.exception.BadRequestException;
 import cloud.devyard.cloudcollab.exception.ResourceNotFoundException;
 import cloud.devyard.cloudcollab.model.Folder;
 import cloud.devyard.cloudcollab.model.Organization;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -67,6 +70,45 @@ public class FolderServiceImpl implements FolderService {
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public FolderResponse updateFolder(Long folderId, UpdateFolderRequest request, Long userId) {
+        Folder folder = folderRepository.findByIdAndDeletedAtIsNull(folderId)
+                .orElseThrow(()-> new ResourceNotFoundException("Folder not found."));
+
+        if (!folder.getCreatedBy().getId().equals(userId)){
+            throw new BadRequestException("You don't have permission to update this folder");
+        }
+
+        if(request.getName() != null) folder.setName(request.getName());
+        if(request.getDescription() != null) folder.setDescription(request.getDescription());
+        if(request.getColor() != null) folder.setColor(request.getColor());
+
+        Folder updateFolder = folderRepository.save(folder);
+        return mapToResponse(updateFolder);
+    }
+
+    @Override
+    @Transactional
+    public void deleteFolder(Long folderId, Long userId) {
+        Folder folder = folderRepository.findByIdAndDeletedAtIsNull(folderId)
+                .orElseThrow(()-> new ResourceNotFoundException("Folder not found."));
+
+        if(!folder.getCreatedBy().getId().equals(userId)){
+            throw new BadRequestException("You don't have permission to delete this folder");
+        }
+
+        folder.setDeletedAt(LocalDateTime.now());
+
+        folderRepository.save(folder);
+        // TODO: Also soft delete all files in this folder and subfolders
+    }
+
+    @Override
+    public List<FolderResponse> searchFolders(Long organizationId, String query) {
+        return List.of();
     }
 
     private FolderResponse mapToResponse(Folder saved) {
