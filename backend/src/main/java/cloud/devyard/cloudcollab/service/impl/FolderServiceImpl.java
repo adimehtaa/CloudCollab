@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -108,7 +109,10 @@ public class FolderServiceImpl implements FolderService {
 
     @Override
     public List<FolderResponse> searchFolders(Long organizationId, String query) {
-        return List.of();
+        return folderRepository.searchFolders(organizationId, query)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     private FolderResponse mapToResponse(Folder saved) {
