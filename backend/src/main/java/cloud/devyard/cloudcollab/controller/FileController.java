@@ -10,14 +10,13 @@ import cloud.devyard.cloudcollab.service.FileService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -59,5 +58,40 @@ public class FileController {
 
         return ResponseEntity.ok(response);
 
+    }
+
+    @GetMapping
+    public ResponseEntity<@NonNull ApiResponse<Page<@NonNull FileResponse>>> getFiles(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestParam(required = false) Long folderId,
+            Pageable pageable
+    ){
+        Page<@NonNull FileResponse> files = fileService.getFiles(currentUser.getOrganizationId(), folderId, pageable);
+
+        var response = ApiResponse.<Page<@NonNull FileResponse>>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("Fetch files successfully.")
+                .data(files)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(path = "/{fileId}")
+    public ResponseEntity<@NonNull ApiResponse<FileResponse>> getFileById(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable Long fileId
+    ){
+        FileResponse file = fileService.getFileById(fileId, currentUser.getId());
+
+        var response = ApiResponse.<FileResponse>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("Fetch file successfully.")
+                .data(file)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 }
