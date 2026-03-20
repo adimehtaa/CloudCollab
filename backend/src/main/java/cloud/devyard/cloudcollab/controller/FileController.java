@@ -94,4 +94,20 @@ public class FileController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/shared/{shareToken}")
+    public ResponseEntity<FileResponse> getFileByShareToken(@PathVariable String shareToken) {
+        FileResponse file = fileService.getFileByShareToken(shareToken);
+        return ResponseEntity.ok(file);
+    }
+
+    @PutMapping("/{fileId}")
+    public ResponseEntity<FileResponse> updateFile(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable Long fileId,
+            @RequestBody FileUploadRequest request) {
+        FileResponse updated = fileService.updateFile(fileId, request, currentUser.getId());
+        return ResponseEntity.ok(updated);
+    }
+
 }
