@@ -10,14 +10,18 @@ import cloud.devyard.cloudcollab.service.FileService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.InputStream;
 
 @RestController
 @RequestMapping("/api/files")
@@ -108,6 +112,30 @@ public class FileController {
             @RequestBody FileUploadRequest request) {
         FileResponse updated = fileService.updateFile(fileId, request, currentUser.getId());
         return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{fileId}")
+    public ResponseEntity<ApiResponse> deleteFile(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable Long fileId,
+            HttpServletRequest httpRequest) {
+        fileService.deleteFile(fileId, currentUser.getId(), httpRequest);
+        return ResponseEntity.ok(new ApiResponse(true, "File deleted successfully"));
+    }
+
+    @GetMapping("/{fileId}/download")
+    public ResponseEntity<InputStreamResource> downloadFile(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable Long fileId) {
+
+        FileResponse fileInfo = fileService.getFileById(fileId, currentUser.getId());
+        InputStream fileStream = fileService.downloadFile(fileId, currentUser.getId());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + fileInfo.getName() + "\"")
+                .contentType(MediaType.parseMediaType(fileInfo.getMimeType()))
+                .body(new InputStreamResource(fileStream));
     }
 
 }
