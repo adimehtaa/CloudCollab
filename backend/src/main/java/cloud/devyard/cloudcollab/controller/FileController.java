@@ -138,4 +138,24 @@ public class FileController {
                 .body(new InputStreamResource(fileStream));
     }
 
+    @GetMapping("/{fileId}/download-url")
+    public ResponseEntity<ApiResponse> generateDownloadUrl(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable Long fileId,
+            @RequestParam(defaultValue = "15") int expirationMinutes) {
+
+        String url = fileService.generateDownloadUrl(fileId, currentUser.getId(), expirationMinutes);
+        return ResponseEntity.ok(new ApiResponse(true, url));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<FileResponse>> searchFiles(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestParam String query,
+            Pageable pageable) {
+        Page<FileResponse> files = fileService.searchFiles(
+                currentUser.getOrganizationId(), query, pageable);
+        return ResponseEntity.ok(files);
+    }
+
 }
