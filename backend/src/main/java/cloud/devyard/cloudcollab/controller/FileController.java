@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/files")
@@ -156,6 +157,26 @@ public class FileController {
         Page<FileResponse> files = fileService.searchFiles(
                 currentUser.getOrganizationId(), query, pageable);
         return ResponseEntity.ok(files);
+    }
+
+    @PostMapping("/{fileId}/versions")
+    public ResponseEntity<FileResponse> createNewVersion(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable Long fileId,
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest httpRequest) {
+
+        FileResponse response = fileService.createNewVersion(fileId, file,
+                currentUser.getId(), httpRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{fileId}/versions")
+    public ResponseEntity<List<FileResponse>> getFileVersions(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable Long fileId) {
+        List<FileResponse> versions = fileService.getFileVersions(fileId, currentUser.getId());
+        return ResponseEntity.ok(versions);
     }
 
 }
