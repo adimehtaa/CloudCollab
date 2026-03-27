@@ -2,12 +2,14 @@ package cloud.devyard.cloudcollab.controller;
 
 import cloud.devyard.cloudcollab.dto.ApiResponse;
 import cloud.devyard.cloudcollab.dto.request.FileUploadRequest;
+import cloud.devyard.cloudcollab.dto.request.ShareFileRequest;
 import cloud.devyard.cloudcollab.dto.response.FileResponse;
 import cloud.devyard.cloudcollab.dto.response.Status;
 import cloud.devyard.cloudcollab.security.UserPrincipal;
 import cloud.devyard.cloudcollab.service.FileService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.core.io.InputStreamResource;
@@ -177,6 +179,28 @@ public class FileController {
             @PathVariable Long fileId) {
         List<FileResponse> versions = fileService.getFileVersions(fileId, currentUser.getId());
         return ResponseEntity.ok(versions);
+    }
+
+    @PostMapping("/{fileId}/share")
+    public ResponseEntity<ApiResponse> shareFile(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable Long fileId,
+            @Valid @RequestBody ShareFileRequest request) {
+            @Valid @RequestBody ShareFileRequest request) {
+
+        fileService.shareFile(fileId, request.getUserId(),
+                request.getPermissionType(), currentUser.getId());
+        return ResponseEntity.ok(new ApiResponse(true, "File shared successfully"));
+    }
+
+    @DeleteMapping("/{fileId}/share/{userId}")
+    public ResponseEntity<ApiResponse> revokeFileAccess(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable Long fileId,
+            @PathVariable Long userId) {
+
+        fileService.revokeFileAccess(fileId, userId, currentUser.getId());
+        return ResponseEntity.ok(new ApiResponse(true, "Access revoked successfully"));
     }
 
 }
