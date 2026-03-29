@@ -20,5 +20,5 @@ public class ApiResponse<T> {
     private T data;
 
     @Builder.Default
-    private Instant timestamp = new Date().toInstant();
+    private Instant timestamp = Instant.now();
 }

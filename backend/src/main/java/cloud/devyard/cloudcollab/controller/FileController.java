@@ -3,15 +3,17 @@ package cloud.devyard.cloudcollab.controller;
 import cloud.devyard.cloudcollab.dto.ApiResponse;
 import cloud.devyard.cloudcollab.dto.request.FileUploadRequest;
 import cloud.devyard.cloudcollab.dto.request.ShareFileRequest;
+import cloud.devyard.cloudcollab.dto.request.UpdateFileRequest;
 import cloud.devyard.cloudcollab.dto.response.FileResponse;
 import cloud.devyard.cloudcollab.dto.response.Status;
+import cloud.devyard.cloudcollab.dto.response.StorageStatsResponse;
 import cloud.devyard.cloudcollab.security.UserPrincipal;
 import cloud.devyard.cloudcollab.service.FileService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +28,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 import java.util.List;
 
+
+@NullMarked
 @RestController
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
@@ -34,15 +38,14 @@ public class FileController {
     private final FileService fileService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<@NonNull ApiResponse<FileResponse>> uploadFile(
+    public ResponseEntity<ApiResponse<FileResponse>> uploadFile(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) Long folderId,
             @RequestParam(required = false) Boolean isPublic,
             HttpServletRequest httpRequest
-    ){
-
+    ) {
         FileUploadRequest request = FileUploadRequest.builder()
                 .description(description)
                 .folderId(folderId)
@@ -50,87 +53,95 @@ public class FileController {
                 .build();
 
         FileResponse fileResponse = fileService.uploadFile(
-                file,
-                request,
-                currentUser.getId(),
-                currentUser.getOrganizationId(),
-                httpRequest);
+                file, request, currentUser.getId(), currentUser.getOrganizationId(), httpRequest);
 
-        var response = ApiResponse.<FileResponse>builder()
+        return ResponseEntity.ok(ApiResponse.<FileResponse>builder()
                 .status(Status.SUCCESS)
                 .statusCode(HttpStatus.OK.value())
-                .message("Upload file successfully.")
+                .message("File uploaded successfully.")
                 .data(fileResponse)
-                .build();
-
-        return ResponseEntity.ok(response);
-
+                .build());
     }
 
     @GetMapping
-    public ResponseEntity<@NonNull ApiResponse<Page<@NonNull FileResponse>>> getFiles(
+    public ResponseEntity<ApiResponse<Page<FileResponse>>> getFiles(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestParam(required = false) Long folderId,
             Pageable pageable
-    ){
-        Page<@NonNull FileResponse> files = fileService.getFiles(currentUser.getOrganizationId(), folderId, pageable);
+    ) {
+        Page<FileResponse> files = fileService.getFiles(currentUser.getOrganizationId(), folderId, pageable);
 
-        var response = ApiResponse.<Page<@NonNull FileResponse>>builder()
+        return ResponseEntity.ok(ApiResponse.<Page<FileResponse>>builder()
                 .status(Status.SUCCESS)
                 .statusCode(HttpStatus.OK.value())
-                .message("Fetch files successfully.")
+                .message("Files fetched successfully.")
                 .data(files)
-                .build();
-
-        return ResponseEntity.ok(response);
+                .build());
     }
 
-    @GetMapping(path = "/{fileId}")
-    public ResponseEntity<@NonNull ApiResponse<FileResponse>> getFileById(
+    @GetMapping("/{fileId}")
+    public ResponseEntity<ApiResponse<FileResponse>> getFileById(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable Long fileId
-    ){
+    ) {
         FileResponse file = fileService.getFileById(fileId, currentUser.getId());
 
-        var response = ApiResponse.<FileResponse>builder()
+        return ResponseEntity.ok(ApiResponse.<FileResponse>builder()
                 .status(Status.SUCCESS)
                 .statusCode(HttpStatus.OK.value())
-                .message("Fetch file successfully.")
+                .message("File fetched successfully.")
                 .data(file)
-                .build();
-
-        return ResponseEntity.ok(response);
+                .build());
     }
 
     @GetMapping("/shared/{shareToken}")
-    public ResponseEntity<FileResponse> getFileByShareToken(@PathVariable String shareToken) {
+    public ResponseEntity<ApiResponse<FileResponse>> getFileByShareToken(@PathVariable String shareToken) {
         FileResponse file = fileService.getFileByShareToken(shareToken);
-        return ResponseEntity.ok(file);
+
+        return ResponseEntity.ok(ApiResponse.<FileResponse>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("File fetched successfully.")
+                .data(file)
+                .build());
     }
 
     @PutMapping("/{fileId}")
-    public ResponseEntity<FileResponse> updateFile(
+    public ResponseEntity<ApiResponse<FileResponse>> updateFile(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable Long fileId,
-            @RequestBody FileUploadRequest request) {
+            @Valid @RequestBody UpdateFileRequest request
+    ) {
         FileResponse updated = fileService.updateFile(fileId, request, currentUser.getId());
-        return ResponseEntity.ok(updated);
+
+        return ResponseEntity.ok(ApiResponse.<FileResponse>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("File updated successfully.")
+                .data(updated)
+                .build());
     }
 
     @DeleteMapping("/{fileId}")
-    public ResponseEntity<ApiResponse> deleteFile(
+    public ResponseEntity<ApiResponse<Void>> deleteFile(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable Long fileId,
-            HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest
+    ) {
         fileService.deleteFile(fileId, currentUser.getId(), httpRequest);
-        return ResponseEntity.ok(new ApiResponse(true, "File deleted successfully"));
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("File deleted successfully.")
+                .build());
     }
 
     @GetMapping("/{fileId}/download")
     public ResponseEntity<InputStreamResource> downloadFile(
             @AuthenticationPrincipal UserPrincipal currentUser,
-            @PathVariable Long fileId) {
-
+            @PathVariable Long fileId
+    ) {
         FileResponse fileInfo = fileService.getFileById(fileId, currentUser.getId());
         InputStream fileStream = fileService.downloadFile(fileId, currentUser.getId());
 
@@ -142,65 +153,109 @@ public class FileController {
     }
 
     @GetMapping("/{fileId}/download-url")
-    public ResponseEntity<ApiResponse> generateDownloadUrl(
+    public ResponseEntity<ApiResponse<String>> generateDownloadUrl(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable Long fileId,
-            @RequestParam(defaultValue = "15") int expirationMinutes) {
-
+            @RequestParam(defaultValue = "15") int expirationMinutes
+    ) {
         String url = fileService.generateDownloadUrl(fileId, currentUser.getId(), expirationMinutes);
-        return ResponseEntity.ok(new ApiResponse(true, url));
+
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("Download URL generated successfully.")
+                .data(url)
+                .build());
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<FileResponse>> searchFiles(
+    public ResponseEntity<ApiResponse<Page<FileResponse>>> searchFiles(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @RequestParam String query,
-            Pageable pageable) {
-        Page<FileResponse> files = fileService.searchFiles(
-                currentUser.getOrganizationId(), query, pageable);
-        return ResponseEntity.ok(files);
+            Pageable pageable
+    ) {
+        Page<FileResponse> files = fileService.searchFiles(currentUser.getOrganizationId(), query, pageable);
+
+        return ResponseEntity.ok(ApiResponse.<Page<FileResponse>>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("Files searched successfully.")
+                .data(files)
+                .build());
     }
 
     @PostMapping("/{fileId}/versions")
-    public ResponseEntity<FileResponse> createNewVersion(
+    public ResponseEntity<ApiResponse<FileResponse>> createNewVersion(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable Long fileId,
             @RequestParam("file") MultipartFile file,
-            HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest
+    ) {
+        FileResponse fileResponse = fileService.createNewVersion(fileId, file, currentUser.getId(), httpRequest);
 
-        FileResponse response = fileService.createNewVersion(fileId, file,
-                currentUser.getId(), httpRequest);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.<FileResponse>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("New file version created successfully.")
+                .data(fileResponse)
+                .build());
     }
 
     @GetMapping("/{fileId}/versions")
-    public ResponseEntity<List<FileResponse>> getFileVersions(
+    public ResponseEntity<ApiResponse<List<FileResponse>>> getFileVersions(
             @AuthenticationPrincipal UserPrincipal currentUser,
-            @PathVariable Long fileId) {
+            @PathVariable Long fileId
+    ) {
         List<FileResponse> versions = fileService.getFileVersions(fileId, currentUser.getId());
-        return ResponseEntity.ok(versions);
+
+        return ResponseEntity.ok(ApiResponse.<List<FileResponse>>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("File versions fetched successfully.")
+                .data(versions)
+                .build());
     }
 
     @PostMapping("/{fileId}/share")
-    public ResponseEntity<ApiResponse> shareFile(
+    public ResponseEntity<ApiResponse<Void>> shareFile(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable Long fileId,
-            @Valid @RequestBody ShareFileRequest request) {
-            @Valid @RequestBody ShareFileRequest request) {
+            @Valid @RequestBody ShareFileRequest request
+    ) {
+        fileService.shareFile(fileId, request.getUserId(), request.getPermissionType(), currentUser.getId());
 
-        fileService.shareFile(fileId, request.getUserId(),
-                request.getPermissionType(), currentUser.getId());
-        return ResponseEntity.ok(new ApiResponse(true, "File shared successfully"));
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("File shared successfully.")
+                .build());
     }
 
     @DeleteMapping("/{fileId}/share/{userId}")
-    public ResponseEntity<ApiResponse> revokeFileAccess(
+    public ResponseEntity<ApiResponse<Void>> revokeFileAccess(
             @AuthenticationPrincipal UserPrincipal currentUser,
             @PathVariable Long fileId,
-            @PathVariable Long userId) {
-
+            @PathVariable Long userId
+    ) {
         fileService.revokeFileAccess(fileId, userId, currentUser.getId());
-        return ResponseEntity.ok(new ApiResponse(true, "Access revoked successfully"));
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("File access revoked successfully.")
+                .build());
     }
 
+    @GetMapping("/storage/stats")
+    public ResponseEntity<ApiResponse<StorageStatsResponse>> getStorageStats(
+            @AuthenticationPrincipal UserPrincipal currentUser
+    ){
+        StorageStatsResponse stats = fileService.getStorageStats(currentUser.getOrganizationId());
+        return ResponseEntity.ok(ApiResponse.<StorageStatsResponse>builder()
+                .status(Status.SUCCESS)
+                .statusCode(HttpStatus.OK.value())
+                .message("Storage stats.")
+                .data(stats)
+                .build());
+    }
 }
