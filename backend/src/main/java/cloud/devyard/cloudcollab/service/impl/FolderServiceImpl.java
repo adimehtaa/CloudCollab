@@ -115,6 +115,13 @@ public class FolderServiceImpl implements FolderService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public FolderResponse getFolderById(Long folderId) {
+        Folder folder = folderRepository.findByIdAndDeletedAtIsNull(folderId)
+                .orElseThrow(()-> new ResourceNotFoundException("Folder not found"));
+        return mapToResponse(folder);
+    }
+
     private FolderResponse mapToResponse(Folder saved) {
 
         return FolderResponse.builder()

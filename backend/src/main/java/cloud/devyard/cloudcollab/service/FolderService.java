@@ -13,5 +13,6 @@ public interface FolderService {
     public FolderResponse updateFolder(Long folderId, UpdateFolderRequest request, Long userId);
     public void deleteFolder(Long folderId, Long userId);
     public List<FolderResponse> searchFolders(Long organizationId, String query);
+    public FolderResponse getFolderById(Long folderId);
 
     }
